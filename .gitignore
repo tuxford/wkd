@@ -1,6 +1,28 @@
+########## Java ignore ##########
 *.class
 
 # Package Files #
 *.jar
 *.war
 *.ear
+
+
+######### C++ ignore ##########
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Build directories
+build/*
+bin/*
