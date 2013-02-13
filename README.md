@@ -1,4 +1,9 @@
-wkd
+WKD - Windows kernel debugger plugin for Eclipse IDE
+
 ===
 
-Windows kernel debugger plugin for Eclipse
+Repository hierarchy
+
+root
+   |-kdservice - kd win service
+   |-plugin - eclipse plugin
