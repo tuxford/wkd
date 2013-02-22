@@ -8,32 +8,27 @@
 #include "Command/CommandHandler.h"
 #include "Command/Install.h"
 #include "Command/Run.h"
+#include "Service.h"
 
 #include <iostream>
 
-namespace Command
-{
+namespace Command {
 
-void CommandHandler::handle(const std::vector<std::wstring> &parameters)
-{
+void CommandHandler::handle(const std::vector<std::wstring> &parameters) {
 
-	if (parameters.size() && (parameters[0] == Install::COMMAND))
-	{
+	if (parameters.size() && (parameters[0] == Install::COMMAND)) {
 		bool isInstallSuccess = false;
 
 		isInstallSuccess = Install::install();
 
-		if (isInstallSuccess)
-		{
-			std::wcout << "Service has been successfully installed " << std::endl;
+		if (isInstallSuccess) {
+			Service::LOGGER << log4cpp::Priority::INFO << "Service has been successfully installed ";
 		}
-		else
-		{
-			std::wcout << "Service hasn't been installed " << std::endl;
+		else {
+			Service::LOGGER << log4cpp::Priority::FATAL << "Service hasn't been installed ";
 		}
 	}
-	else
-	{
+	else {
 		Run::run(parameters);
 	}
 

@@ -9,26 +9,55 @@
 #define Debugger_KdClient_H_
 
 #include "Debugger/IClient.h"
+#include "Debugger/DebugEventCallbacks.h"
+#include "Debugger/KdDebugInputCallbacks.h"
+#include "Debugger/KdDebugOutputCallbacks.h"
+#include "Core/Exception.h"
+#include "Debugger/StateMachine.h"
+#include "IRunnable.h"
+
+#include <boost/thread/mutex.hpp>
+#include <boost/thread.hpp>
 
 namespace Debugger {
 
-class KdClient: public IClient
-{
+class KdClient: public IClient, public IRunnable {
 public:
 	KdClient();
-	virtual ~KdClient() {};
 
-	virtual void connect(const std::string& parameters);
-	virtual void disconnect();
+	virtual const States::TargetStateInfo getTargetStateInfo() const;
+	virtual int connect();
+	virtual int attachKenel(const std::string& parameters);
+	virtual int disconnect();
+	virtual void operator ()() {
+		Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::operator(): Thread started";
+		startMutex.lock();
+		if (threadFinishFlag == true) {
+			return;
+		}
+		waitForTargetEvent();
+	}
 
+	void setTargetStateMachine(StateMachine* pStateMachine);
 private:
 	Core::DebugClientInterface* pDebugClient;
 	Core::DebugControlInterface* pDebugControl;
+	Core::DebugSymbolsInterface* pDebugSymbols;
+	DebugEventCallbacks debugEventCallbacks;
+	KdDebugInputCallbacks debugInputCallbacks;
+	KdDebugOutputCallbacks debugOutputCallbacks;
+	StateMachine* pTargetStateMachine;
+	bool isKernelAttached;
+	boost::mutex startMutex;
+	boost::shared_ptr<boost::thread> pTargetStateThread;
+	bool threadFinishFlag;
 
 	void createDebugClient();
 	void createDebugControl();
-	void attachKernel(const std::string& parameters);
-	void waitForEvent();
+	void attachKernelTarget(const std::string& parameters);
+	void setEventHandlers();
+	void crateDebugSymbols();
+	void waitForTargetEvent();
 };
 
 } /* namespace Debugger */

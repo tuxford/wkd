@@ -24,7 +24,7 @@
    <extension
          point="org.eclipse.debug.core.sourcePathComputers">
       <sourcePathComputer
-            class="com.tuxford.wkd.core.pda.launching.WkdSourcePathComputerDelegate"
+            class="com.tuxford.wkd.id.launching.WkdSourcePathComputerDelegate"
             id="com.tuxford.wkd.core.sourcePathComputer.pda">
       </sourcePathComputer>
    </extension>
@@ -39,9 +39,9 @@
    <extension
          point="org.eclipse.debug.core.breakpoints">
       <breakpoint
-            markerType="com.tuxford.wkd.core.pda.lineBreakpoint.marker"
-            class="com.tuxford.wkd.core.pda.model.WkdLineBreakpoint"
-            id="com.tuxford.wkd.core.pda.lineBreakpoint">
+            markerType="com.tuxford.wkd.id.lineBreakpoint.marker"
+            class="com.tuxford.wkd.id.model.WkdLineBreakpoint"
+            id="com.tuxford.wkd.id.lineBreakpoint">
       </breakpoint>
    </extension>
    <extension

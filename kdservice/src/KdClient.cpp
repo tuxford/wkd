@@ -6,6 +6,9 @@
  */
 
 #include "Debugger/KdClient.h"
+#include "Debugger/Debugger.h"
+#include "Debugger/States/InitialState.h"
+#include "Service.h"
 
 #include <exception>
 #include <iostream>
@@ -13,78 +16,172 @@
 namespace Debugger {
 
 KdClient::KdClient() :
-		pDebugClient(0),
-		pDebugControl(0)
-{
+			pDebugClient(0),
+			pDebugControl(0),
+			pDebugSymbols(0),
+			pTargetStateMachine(0),
+			isKernelAttached(false),
+			threadFinishFlag(false) {
 }
 
-void KdClient::connect(const std::string& parameters)
-{
-	createDebugClient();
-	createDebugControl();
-	attachKernel(parameters);
+const States::TargetStateInfo KdClient::getTargetStateInfo() const {
+	return pTargetStateMachine->context<StateMachine>().getTargetStateInfo();
 }
 
-void KdClient::disconnect()
+int KdClient::connect() {
+	try {
+		startMutex.lock();
+		threadFinishFlag = false;
+		boost::shared_ptr<boost::thread> pThread(new boost::thread(boost::bind(&KdClient::operator(), this)));
+		pTargetStateThread = pThread;
+
+		createDebugClient();
+		createDebugControl();
+		setEventHandlers();
+	}
+	catch(DebugClientException &e) {
+		startMutex.unlock();
+		if (e.getErrorCode() == UNEXPECTED_ERROR) {
+			throw;
+		}
+		return e.getErrorCode();
+	}
+
+	return HandleResult::SUCCESS;
+}
+
+int KdClient::attachKenel(const std::string& parameters)
 {
-	if (pDebugControl)
-	{
+	try {
+		attachKernelTarget(parameters);
+	}
+	catch(DebugClientException &e) {
+		if (e.getErrorCode() == UNEXPECTED_ERROR) {
+			throw;
+		}
+		return e.getErrorCode();
+	}
+
+	return HandleResult::SUCCESS;
+}
+
+int KdClient::disconnect() {
+	startMutex.unlock();
+	threadFinishFlag = true;
+	pTargetStateThread->join();
+
+	if (isKernelAttached) {
+		pDebugClient->DetachProcesses();
+		isKernelAttached = true;
+	}
+
+	if (pDebugControl) {
 		pDebugControl->Release();
 		pDebugControl = 0;
 	}
-	else
-	{
-		throw std::exception("Attempt to destroy uninitialized object \"pDebugControl\"");
+	else {
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Attempt to destroy uninitialized object \"pDebugControl\"");
 	}
 
-	if (pDebugClient != 0)
-	{
+	if (pDebugClient != 0) {
 		pDebugClient->EndSession(DEBUG_END_ACTIVE_DETACH);
 		pDebugClient->Release();
 		pDebugClient = 0;
 	}
-	else
-	{
-		throw std::exception("Attempt to destroy uninitialized object \"pDebugClient\"");
+	else {
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Attempt to destroy uninitialized object \"pDebugClient\"");
 	}
+
+	return HandleResult::SUCCESS;
 }
 
-void KdClient::createDebugClient()
+void KdClient::setTargetStateMachine(StateMachine* pStateMachine)
 {
+	this->pTargetStateMachine = pStateMachine;
+}
+
+void KdClient::createDebugClient() {
+
+	if (pDebugClient != 0) {
+		throw DebugClientException(HandleResult::ALREADY_INITILIZED, "DebugClient already exists.");
+	}
+
 	HRESULT debugCreateStatus = ::DebugCreate(__uuidof(IDebugClient), (void**)&pDebugClient);
-	if (debugCreateStatus != S_OK)
-	{
-		throw std::exception("Cann't initialize debug client. DebugCreate failed.");
+
+	if (debugCreateStatus != S_OK ) {
+		Service::LOGGER << log4cpp::Priority::CRIT << "Cann't initialize debug client. Creation of DebugClient failed. Error: 0x" << std::hex << debugCreateStatus;
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Cann't initialize debug client. Creation of DebugClient failed.");
 	}
 }
 
-void KdClient::createDebugControl()
-{
+void KdClient::createDebugControl() {
+
+	if (pDebugControl != 0) {
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "DebugControl already exists.");
+	}
+
 	HRESULT queryDebugControlInterfaceStatus = pDebugClient->QueryInterface(__uuidof(IDebugControl), (void**)&pDebugControl);
-	if (queryDebugControlInterfaceStatus != S_OK)
-	{
-		throw std::exception("Debug control dosn't support");
+
+	if (queryDebugControlInterfaceStatus != S_OK ) {
+		Service::LOGGER << log4cpp::Priority::CRIT << "Debug control dosn't support. Error: 0x" << std::hex << queryDebugControlInterfaceStatus;
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Debug control dosn't support");
 	}
 }
 
-void KdClient::attachKernel(const std::string& parameters)
-{
+void KdClient::attachKernelTarget(const std::string& parameters) {
+	if (isKernelAttached == true) {
+		throw DebugClientException(HandleResult::ALREADY_ATTACHED_KERNEL, "Kernel already attached");
+	}
+
 	HRESULT attachKernelResult = pDebugClient->AttachKernel(DEBUG_ATTACH_KERNEL_CONNECTION, parameters.c_str());
-	if (attachKernelResult != S_OK)
-	{
-		std::cout << "Parameters: " << parameters << std::endl;
-		std::cout << "Error: 0x" << std::hex << attachKernelResult << std::endl;
-		std::cout.unsetf(std::ios::hex);
-		throw std::exception("Cann't attach to kernel");
+	if (attachKernelResult != S_OK ) {
+		Service::LOGGER << log4cpp::Priority::ERROR << "KdClient::attachKernel: attach to kernel failed. Parameters: " << parameters;
+		Service::LOGGER << log4cpp::Priority::ERROR << "Error: 0x" << std::hex << attachKernelResult;
+		throw DebugClientException(HandleResult::ATTACH_KERNEL_ERROR, "Cann't attach to kernel.");
+	}
+
+	isKernelAttached = true;
+}
+
+void KdClient::setEventHandlers() {
+
+	if (pDebugClient != 0) {
+
+		HRESULT setEventCallbacksResult = pDebugClient->SetEventCallbacks(&debugEventCallbacks);
+		if (setEventCallbacksResult != S_OK) {
+			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set EventHandlersCallbacks. Error: 0x" << std::hex << setEventCallbacksResult;
+			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
+		}
+
+/*		HRESULT setInputCallbacksResult = pDebugClient->SetInputCallbacks(&debugInputCallbacks);
+		if (setInputCallbacksResult != S_OK) {
+			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set InputHandlersCallbacks. Error: 0x" << std::hex << setInputCallbacksResult;
+			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
+		}*/
+
+		HRESULT setOutputCallbacksResult = pDebugClient->SetOutputCallbacks(&debugOutputCallbacks);
+		if (setOutputCallbacksResult != S_OK) {
+			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set OutputHandlersCallbacks. Error: 0x" << std::hex << setOutputCallbacksResult;
+			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
+		}
+
+		Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::setEventHandlers: handlers are installed successfully";
+	}
+	else {
+		Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: debug client is 0";
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Internal error. Debug client not initialized");
 	}
 }
 
-void KdClient::waitForEvent()
-{
+void KdClient::waitForTargetEvent() {
+	HRESULT setIinitialBreakResult = pDebugControl->SetEngineOptions(DEBUG_ENGOPT_INITIAL_BREAK);
+	if (setIinitialBreakResult != S_OK ) {
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set initial break");
+	}
+
 	HRESULT waitForEventResult = pDebugControl->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE);
-	if (waitForEventResult != S_OK)
-	{
-		throw std::exception("Target not available");
+	if (waitForEventResult != S_OK ) {
+		throw DebugClientException(HandleResult::TARGET_UNAVAILABLE, "Target not available");
 	}
 }
 

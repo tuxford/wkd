@@ -9,6 +9,7 @@
 #define Debugger_IClient_H_
 
 #include "Core/Base.h"
+#include "Debugger/States/TargetStateInfo.h"
 
 #include <string>
 
@@ -19,8 +20,10 @@ class IClient
 public:
 	virtual ~IClient() {}
 
-	virtual void connect(const std::string& parameters) = 0;
-	virtual void disconnect() = 0;
+	virtual const States::TargetStateInfo getTargetStateInfo() const = 0;
+	virtual int connect() = 0;
+	virtual int attachKenel(const std::string& parameters) = 0;
+	virtual int disconnect() = 0;
 };
 
 }  // namespace Debugger

@@ -8,16 +8,16 @@
 #ifndef Command_Run_H_
 #define Command_Run_H_
 
-#include "Server/DebugRpcServer.h"
+#include "Server/IDebugServer.h"
 
+#include <boost/shared_ptr.hpp>
 #include <windows.h>
 #include <string>
+#include <vector>
 
-namespace Command
-{
+namespace Command {
 
-class Run
-{
+class Run {
 public:
 	static bool run(const std::vector<std::wstring> &parameters);
 
@@ -30,7 +30,7 @@ private:
 	SERVICE_STATUS serviceStatus;
 	SERVICE_STATUS_HANDLE serviceStatusHandle;
 	unsigned long checkPoint;
-	Server::DebugRpcServer *pDebugRpcServer;
+	boost::shared_ptr<Server::IDebugServer> pDebugServer;
 	std::vector<std::wstring> parameters;
 
 	Run(const std::vector<std::wstring> &parameters);

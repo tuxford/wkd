@@ -7,7 +7,7 @@
 
 #include "Server/Methods/DebugClientConnectProxy.h"
 
-#include <exception>
+#include <stdexcept>
 
 namespace Server {
 namespace Methods {
@@ -21,7 +21,7 @@ void DebugClientConnectProxy::connect(const std::string& parameters)
 {
 	if (pDebugClient == 0)
 	{
-		throw std::exception("Debug client is NULL");
+		throw std::runtime_error("Debug client is NULL");
 	}
 
 	pDebugClient->connect(parameters);

@@ -6,115 +6,124 @@
  */
 
 #include "Server/DebugRpcServer.h"
+#include "Service.h"
+
+#include <xmlrpc-c/server_w32httpsys.h>
 
 #include <sstream>
 #include <iostream>
 #include <exception>
 
-namespace Server
-{
+namespace Server {
 
-const unsigned int DebugRpcServer::DEFAULT_PORT = 21605;
 const unsigned long DebugRpcServer::WAIT_TIMEOUT_MS = 60000;
 
 DebugRpcServer::DebugRpcServer(unsigned int srvPort, const Methods::MethodRegistry &registry) :
-	port(srvPort),
-	stopFlag(false),
-	isRunFlag(false),
-	threadHandle(INVALID_HANDLE_VALUE),
-	pAbyssRpcServer(NULL),
-	methodRegistry(registry)
-{
+			port(srvPort),
+			pAbyssRpcServer(NULL),
+			methodRegistry(registry) {
 }
 
-bool DebugRpcServer::isRun()
-{
-	return isRunFlag;
-}
-
-void DebugRpcServer::start()
-{
-	if (isRun())
-	{
-		throw std::exception();//(std::string("Server already run"));
-	}
-
+void DebugRpcServer::start() {
 	updatePortIfNeed();
 
 	initRpcServer();
+}
 
-	threadHandle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)run, this, 0, NULL);
-	if (threadHandle == NULL)
-	{
-		throw std::exception();//std::string("System didn't start thread"));
+void DebugRpcServer::stop() {
+//	pAbyssRpcServer->terminate();
+}
+
+static xmlrpc_value *
+sample_add(xmlrpc_env * const env, xmlrpc_value * const param_array, void * const user_data) {
+//    xmlrpc_int32 x, y, z;
+	xmlrpc_value *pVal = xmlrpc_string_new(env, "");
+
+	/* Parse our argument array. */
+
+	/* Return our result. */
+	return xmlrpc_build_value(env, "b", 1);
+}
+
+static void handleAuthorization(xmlrpc_env * envP, char * userid, char * password) {
+}
+
+void DebugRpcServer::operator()() {
+	/*	if (pAbyssRpcServer == 0)
+	 {
+	 std::cout << "Critical: DebugRpcServer::operator() : pAbyssRpcServer not initialized" << std::endl;
+	 return;
+	 }
+	 std::cout << "DebugRpcServer::operator() : start" << std::endl;
+	 try
+	 {
+	 pAbyssRpcServer->processCall();
+
+	 std::cout << "DebugRpcServer::operator() : !!!" << std::endl;
+	 }
+	 catch(...)
+	 {
+	 std::cout << "DebugRpcServer::operator() : fail" << std::endl;
+	 }*/
+	xmlrpc_server_httpsys_parms serverparm;
+	memset(&serverparm, 0, sizeof(serverparm));
+	xmlrpc_registry * registryP;
+	xmlrpc_env env;
+
+	xmlrpc_env_init(&env);
+	Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): environment is initialized ";
+
+	registryP = xmlrpc_registry_new(&env);
+	Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): registry is initialized ";
+
+	for (unsigned int i = 0; i < methodRegistry.getAllMethods().size(); ++i) {
+		xmlrpc_method_info3 methodInfo = methodRegistry.getAllMethods()[i]->getMethodInfo();
+		xmlrpc_registry_add_method3(&env, registryP, &methodInfo);
+	}
+	Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): methods are initialized ";
+
+	serverparm.portNum = 21605;
+	serverparm.useSSL = 0;
+	serverparm.logLevel = 2;
+	serverparm.logFile = "e:\\rpc.log";
+	serverparm.authfn=&handleAuthorization;
+	serverparm.registryP = registryP;
+	Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): staring server";
+	try	{
+		xmlrpc_server_httpsys(&env, &serverparm, XMLRPC_HSSIZE(authfn));
+	}
+	catch(...) {
+		Service::LOGGER << log4cpp::Priority::INFO << "DebugRpcServer::operator(): exception";
+	}
+	Service::LOGGER << log4cpp::Priority::INFO << "DebugRpcServer::operator(): server finished ";
+
+}
+
+void DebugRpcServer::initRpcMethodRegistry(xmlrpc_c::registry& xmlrpcRegistry) {
+	for (Methods::MethodRegistry::AbstractMethodVector::const_iterator it = methodRegistry.getAllMethods().begin(); it != methodRegistry.getAllMethods().end(); ++it) {
+//		xmlrpcRegistry.addMethod((*it)->getName(), *it);
 	}
 }
 
-void DebugRpcServer::stop()
-{
-	stopFlag = true;
+void DebugRpcServer::initRpcServer() {
+	static xmlrpc_c::registry xmlrpcRegistry;
+	initRpcMethodRegistry(xmlrpcRegistry);
 
-	pAbyssRpcServer->terminate();
+//	xmlrpcRegistry.
+	xmlrpc_c::serverCgi::constrOpt co;
+	co.registryP(&xmlrpcRegistry);
 
-	if (WaitForSingleObject(threadHandle, WAIT_TIMEOUT_MS) == WAIT_OBJECT_0)
-	{
-		//TODO: implement force stop
-	}
+	/*	pAbyssRpcServer = new xmlrpc_c::serverCgi(co);
+
+	 if (pAbyssRpcServer == NULL)
+	 {
+	 throw std::exception("Memory allocation for rpc server error");
+	 }*/
 }
 
-Methods::MethodRegistry DebugRpcServer::getMethodRegistry() const
-{
-	return methodRegistry;
-}
-
-void DebugRpcServer::initRpcMethodRegistry()
-{
-	for (Methods::MethodRegistry::AbstractMethodVector::const_iterator it = methodRegistry.getAllMethods().begin();
-			it != methodRegistry.getAllMethods().end(); ++it)
-	{
-		xmlrpcRegistry.addMethod((*it)->getName(), *it);
-	}
-}
-
-void DebugRpcServer::initRpcServer()
-{
-	initRpcMethodRegistry();
-
-	pAbyssRpcServer = new xmlrpc_c::serverAbyss(xmlrpcRegistry, port);
-	if (pAbyssRpcServer == NULL)
-	{
-		throw std::exception();//"Memory allocation for rpc server error");
-	}
-}
-
-unsigned long DebugRpcServer::run(void* parameters)
-{
-	DebugRpcServer* pDebugRpcServer = (DebugRpcServer*)parameters;
-	if (pDebugRpcServer == NULL)
-	{
-		pDebugRpcServer->isRunFlag = false;
-		pDebugRpcServer->stopFlag = false;
-		return 1;
-	}
-
-	pDebugRpcServer->isRunFlag = true;
-
-	std::cout << "DebugRpcServer::run server is running" << std::endl;
-	pDebugRpcServer->pAbyssRpcServer->run();
-	std::cout << "DebugRpcServer::run server is stopped" << std::endl;
-
-	pDebugRpcServer->isRunFlag = false;
-	pDebugRpcServer->stopFlag = false;
-
-	return NO_ERROR;
-}
-
-void DebugRpcServer::updatePortIfNeed()
-{
+void DebugRpcServer::updatePortIfNeed() {
 	const unsigned int maxPortValue = 65535;
-	if ((port == 0) || (port > maxPortValue))
-	{
-		port = DEFAULT_PORT;
+	if ((port == 0) || (port > maxPortValue)) {
 	}
 }
 

@@ -5,7 +5,11 @@
  *      Author: Roman Luchyshyn
  */
 
-#include "Server/Methods/KdConnectMethod.h"
+#include "Server/Methods/Impl/KdConnectMethod.h"
+#include "Server/Methods/Methods.h"
+#include "Debugger/Debugger.h"
+#include "Debugger/Events/ConnectEvent.h"
+#include "Service.h"
 
 #include <iostream>
 #include <exception>
@@ -14,30 +18,26 @@ namespace Server {
 namespace Methods {
 
 const std::string KdConnectMethod::RPC_METHOD_NAME = "Kd.connect";
-const std::string KdConnectMethod::RPC_SIGNATURE = "b:s";
+const std::string KdConnectMethod::RPC_SIGNATURE = "i:";
 
-KdConnectMethod::KdConnectMethod(IConnectInterface *pInterface) :
-		AbstractMethod(RPC_METHOD_NAME, RPC_SIGNATURE),
-		pConnectInterface(pInterface)
-{
+KdConnectMethod::KdConnectMethod(boost::shared_ptr<Debugger::StateMachine> pStateMachine) :
+			AbstractMethod(RPC_METHOD_NAME, RPC_SIGNATURE),
+			pDebugStateMachine(pStateMachine) {
 }
 
-void KdConnectMethod::execute(xmlrpc_c::paramList const& paramList, xmlrpc_c::value* const pRetval)
-{
-	try
-	{
-		const std::string connectionParameters = paramList.getString(0);
-		paramList.verifyEnd(1);
+xmlrpc_value* KdConnectMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray) {
 
-		pConnectInterface->connect(connectionParameters);
+	try {
+		Service::LOGGER << log4cpp::Priority::DEBUG << "KdConnectMethod::execute: connecting in process";
+		pDebugStateMachine->process_event(Debugger::Events::ConnectEvent());
+		return xmlrpc_build_value(pEnv, "i", AsyncExecuteResult::SUCCESS);
 
-		*pRetval = xmlrpc_c::value_boolean(true);
 	}
-	catch(std::exception &e)
-	{
-		std::cout << e.what() << std::endl;
-		*pRetval = xmlrpc_c::value_boolean(false);
+	catch (...) {
+		Service::LOGGER << log4cpp::Priority::ERROR << "KdConnectMethod::execute: unknown exception";
+		return xmlrpc_build_value(pEnv, "i", INTERNAL_ERROR);
 	}
+
 }
 
 } /* namespace Methods */

@@ -25,9 +25,11 @@ namespace Core
 #ifdef SIM
 	typedef void* DebugClientInterface;
 	typedef void* DebugControlInterface;
+	typedef void* DebugSymbolsInterface;
 #else
 	typedef ::IDebugClient DebugClientInterface;
 	typedef ::IDebugControl DebugControlInterface;
+	typedef ::IDebugSymbols DebugSymbolsInterface;
 #endif
 
 }

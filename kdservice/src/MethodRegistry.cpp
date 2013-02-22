@@ -13,13 +13,11 @@ namespace Methods {
 MethodRegistry::MethodRegistry() {
 }
 
-const MethodRegistry::AbstractMethodVector& MethodRegistry::getAllMethods() const
-{
+const MethodRegistry::AbstractMethodVector& MethodRegistry::getAllMethods() const {
 	return methods;
 }
 
-void MethodRegistry::addMethod(AbstractMethod* method)
-{
+void MethodRegistry::addMethod(AbstractMethod* method) {
 	methods.push_back(method);
 }
 

@@ -8,11 +8,13 @@
 #ifndef Service_H_
 #define Service_H_
 
+#include <log4cpp/Category.hh>
 #include <string>
 
 namespace Service
 {
 	static const std::string NAME = "kdservice";
+	static log4cpp::Category& LOGGER = log4cpp::Category::getRoot();
 };
 
 

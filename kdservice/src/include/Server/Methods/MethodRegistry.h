@@ -15,8 +15,7 @@
 namespace Server {
 namespace Methods {
 
-class MethodRegistry
-{
+class MethodRegistry {
 public:
 	typedef std::vector<AbstractMethod*> AbstractMethodVector;
 

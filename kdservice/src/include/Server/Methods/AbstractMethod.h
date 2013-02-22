@@ -8,21 +8,28 @@
 #ifndef Server_Methods_AbstractMethod_H_
 #define Server_Methods_AbstractMethod_H_
 
-#include <xmlrpc-c/registry.hpp>
+#include <string>
+#include <xmlrpc-c/base.h>
+#include <xmlrpc-c/server.h>
 
 namespace Server {
 namespace Methods {
 
-class AbstractMethod: public xmlrpc_c::method
-{
+class AbstractMethod {
 public:
 	AbstractMethod(const std::string& name, const std::string& signature);
 	virtual ~AbstractMethod();
 
+	virtual xmlrpc_value* execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray) = 0;
+	xmlrpc_method_info3 getMethodInfo();
 	std::string getName() const;
+	std::string getSignature() const;
 
 private:
 	const std::string name;
+	const std::string signature;
+
+	static xmlrpc_value* executeMethod(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray, void* const pMethod, void* const pCallInfo);
 };
 
 } /* namespace Methods */

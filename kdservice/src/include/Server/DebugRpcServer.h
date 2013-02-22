@@ -8,43 +8,33 @@
 #ifndef Server_DebugRpcServer_H_
 #define Server_DebugRpcServer_H_
 
-#include "Methods/MethodRegistry.h"
+#include "Server/Methods/MethodRegistry.h"
+#include "Server/IDebugServer.h"
+#include "IRunnable.h"
 
 #include <xmlrpc-c/registry.hpp>
-#include <xmlrpc-c/server_abyss.hpp>
-
+#include <xmlrpc-c/server_cgi.hpp>
 #include <vector>
 
-namespace Server
-{
+namespace Server {
 
-class DebugRpcServer
-{
+class DebugRpcServer: public IDebugServer, public IRunnable {
 public:
-	static const unsigned int DEFAULT_PORT;
-
 	DebugRpcServer(unsigned int port, const Methods::MethodRegistry &methodRegistry);
 
-	bool isRun();
-	void start(); 	/* Method registry must be filled before server start */
-	void stop();
+	virtual void start();
+	virtual void stop();
+	virtual void operator()();
 
 private:
 	static const unsigned long WAIT_TIMEOUT_MS;
 
 	unsigned int port;
-	bool stopFlag;
-	bool isRunFlag;
-	HANDLE threadHandle;
-
-	xmlrpc_c::serverAbyss *pAbyssRpcServer;
-	xmlrpc_c::registry xmlrpcRegistry;
+	xmlrpc_c::serverCgi *pAbyssRpcServer;
 	Methods::MethodRegistry methodRegistry;
 
-	Methods::MethodRegistry getMethodRegistry() const;
-	void initRpcMethodRegistry();
+	void initRpcMethodRegistry(xmlrpc_c::registry& xmlrpcRegistry);
 	void initRpcServer();
-	static unsigned long run(void* parameters);
 	void updatePortIfNeed();
 
 };
