@@ -8,7 +8,7 @@
 #ifndef Debugger_KdDebugOutputCallbacks_H_
 #define Debugger_KdDebugOutputCallbacks_H_
 
-#include "Notifier/IChangeStateNotifier.h"
+#include "Notifier/IOutputNotifier.h"
 
 #include <boost/shared_ptr.hpp>
 #include <dbgeng.h>
@@ -17,7 +17,9 @@ namespace Debugger {
 
 class KdDebugOutputCallbacks: public IDebugOutputCallbacks {
 public:
-	virtual ~KdDebugOutputCallbacks(boost::shared_ptr<Notifier::IOutputNotifier> pOutputNotifier);
+	KdDebugOutputCallbacks(boost::shared_ptr<Notifier::IOutputNotifier> pOutputNotifier);
+
+	virtual ~KdDebugOutputCallbacks();
 
 	virtual ULONG AddRef();
 	virtual ULONG Release();

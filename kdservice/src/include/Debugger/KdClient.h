@@ -29,14 +29,7 @@ public:
 	virtual int connect();
 	virtual int attachKenel(const std::string& parameters);
 	virtual int disconnect();
-	virtual void operator ()() {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::operator(): Thread started";
-		startMutex.lock();
-		if (threadFinishFlag == true) {
-			return;
-		}
-		waitForTargetEvent();
-	}
+	virtual void operator ()();
 
 	void setTargetStateMachine(StateMachine* pStateMachine);
 private:
@@ -44,8 +37,8 @@ private:
 	Core::DebugControlInterface* pDebugControl;
 	Core::DebugSymbolsInterface* pDebugSymbols;
 	DebugEventCallbacks debugEventCallbacks;
-	KdDebugInputCallbacks debugInputCallbacks;
-	KdDebugOutputCallbacks debugOutputCallbacks;
+	boost::shared_ptr<KdDebugInputCallbacks> pDebugInputCallbacks;
+	boost::shared_ptr<KdDebugOutputCallbacks> pDebugOutputCallbacks;
 	StateMachine* pTargetStateMachine;
 	bool isKernelAttached;
 	boost::mutex startMutex;

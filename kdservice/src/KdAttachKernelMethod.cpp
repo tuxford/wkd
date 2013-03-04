@@ -29,8 +29,9 @@ xmlrpc_value* KdAttachKernelMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value
 		const char* pConnectParameters = 0;
 		xmlrpc_decompose_value(pEnv, pParamArray, "s", &pConnectParameters);
 
+		Service::LOGGER << log4cpp::Priority::DEBUG << "KdAttachKernelMethod::execute: 0";
 		pDebugStateMachine->process_event(Debugger::Events::AttachKernelEvent(std::string(pConnectParameters)));
-		Service::LOGGER << log4cpp::Priority::DEBUG << "KdAttachKernelMethod::execute: connected successfully";
+		Service::LOGGER << log4cpp::Priority::DEBUG << "KdAttachKernelMethod::execute: attached successfully";
 		return xmlrpc_build_value(pEnv, "i", 0);
 
 	}

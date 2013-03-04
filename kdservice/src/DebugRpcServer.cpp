@@ -8,8 +8,13 @@
 #include "Server/DebugRpcServer.h"
 #include "Service.h"
 
+#ifndef SIM
 #include <xmlrpc-c/server_w32httpsys.h>
+#else
+#include <xmlrpc-c/server_abyss.h>
+#endif
 
+#include <string.h>
 #include <sstream>
 #include <iostream>
 #include <exception>
@@ -20,7 +25,7 @@ const unsigned long DebugRpcServer::WAIT_TIMEOUT_MS = 60000;
 
 DebugRpcServer::DebugRpcServer(unsigned int srvPort, const Methods::MethodRegistry &registry) :
 			port(srvPort),
-			pAbyssRpcServer(NULL),
+//			pAbyssRpcServer(NULL),
 			methodRegistry(registry) {
 }
 
@@ -65,6 +70,7 @@ void DebugRpcServer::operator()() {
 	 {
 	 std::cout << "DebugRpcServer::operator() : fail" << std::endl;
 	 }*/
+#ifndef SIM
 	xmlrpc_server_httpsys_parms serverparm;
 	memset(&serverparm, 0, sizeof(serverparm));
 	xmlrpc_registry * registryP;
@@ -96,22 +102,52 @@ void DebugRpcServer::operator()() {
 		Service::LOGGER << log4cpp::Priority::INFO << "DebugRpcServer::operator(): exception";
 	}
 	Service::LOGGER << log4cpp::Priority::INFO << "DebugRpcServer::operator(): server finished ";
+#else
+	xmlrpc_env env;
 
+	xmlrpc_env_init(&env);
+	Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): environment is initialized ";
+
+	xmlrpc_registry * registryP;
+	registryP = xmlrpc_registry_new(&env);
+
+	Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): registry is initialized ";
+
+	for (unsigned int i = 0; i < methodRegistry.getAllMethods().size(); ++i) {
+		xmlrpc_method_info3 methodInfo = methodRegistry.getAllMethods()[i]->getMethodInfo();
+		xmlrpc_registry_add_method3(&env, registryP, &methodInfo);
+	}
+	Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): methods are initialized ";
+
+	xmlrpc_server_abyss_parms serverparm;
+	memset(&serverparm, 0, sizeof(serverparm));
+	serverparm.port_number = 21605;
+	serverparm.enable_shutdown = true;
+	serverparm.registryP = registryP;
+	try {
+		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): 0 ";
+		xmlrpc_server_abyss(&env, &serverparm, XMLRPC_APSIZE(registryP));
+//		while(true) {}
+		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): 1 ";
+	}
+	catch(...) {
+		Service::LOGGER << log4cpp::Priority::INFO << "DebugRpcServer::operator(): exception";
+	}
+#endif
 }
 
+/*
 void DebugRpcServer::initRpcMethodRegistry(xmlrpc_c::registry& xmlrpcRegistry) {
 	for (Methods::MethodRegistry::AbstractMethodVector::const_iterator it = methodRegistry.getAllMethods().begin(); it != methodRegistry.getAllMethods().end(); ++it) {
 //		xmlrpcRegistry.addMethod((*it)->getName(), *it);
 	}
-}
+}*/
 
 void DebugRpcServer::initRpcServer() {
-	static xmlrpc_c::registry xmlrpcRegistry;
-	initRpcMethodRegistry(xmlrpcRegistry);
+//	static xmlrpc_c::registry xmlrpcRegistry;
+//	initRpcMethodRegistry(xmlrpcRegistry);
 
 //	xmlrpcRegistry.
-	xmlrpc_c::serverCgi::constrOpt co;
-	co.registryP(&xmlrpcRegistry);
 
 	/*	pAbyssRpcServer = new xmlrpc_c::serverCgi(co);
 

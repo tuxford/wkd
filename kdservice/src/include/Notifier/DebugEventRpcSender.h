@@ -10,6 +10,8 @@
 
 #include "Notifier/Events/ChangeStateEvent.h"
 #include "Notifier/Events/OutputEvent.h"
+#include "Notifier/IChangeStateNotifier.h"
+#include "Notifier/IOutputNotifier.h"
 
 #include <xmlrpc-c/client_simple.hpp>
 
@@ -18,16 +20,17 @@ namespace Notifier {
 class DebugEventRpcSender : public IChangeStateNotifier, public IOutputNotifier {
 public:
 	DebugEventRpcSender();
+	~DebugEventRpcSender();
 
-	virtual void notifyEvent(const Events::ChangeStateEvent& event);
-	virtual void notifyEvent(const Events::OutputEvent& event);
+	virtual void notify(const Events::ChangeStateEvent& event);
+	virtual void notify(const Events::OutputEvent& event);
 
 private:
 	static const std::string EVENT_LISTENER_URL;
 	static const std::string STATE_CHANGED_EVENT_METHOD;
 	static const std::string OUTPUT_EVENT_METHOD;
 
-	xmlrpc_c::clientSimple xmlrpcClient;
+	xmlrpc_c::clientSimple* pXmlrpcClient;
 };
 
 } /* namespace Notifier */

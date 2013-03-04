@@ -39,7 +39,7 @@ int KdClient::connect() {
 		createDebugControl();
 		setEventHandlers();
 	}
-	catch(DebugClientException &e) {
+	catch (DebugClientException &e) {
 		startMutex.unlock();
 		if (e.getErrorCode() == UNEXPECTED_ERROR) {
 			throw;
@@ -50,12 +50,11 @@ int KdClient::connect() {
 	return HandleResult::SUCCESS;
 }
 
-int KdClient::attachKenel(const std::string& parameters)
-{
+int KdClient::attachKenel(const std::string& parameters) {
 	try {
 		attachKernelTarget(parameters);
 	}
-	catch(DebugClientException &e) {
+	catch (DebugClientException &e) {
 		if (e.getErrorCode() == UNEXPECTED_ERROR) {
 			throw;
 		}
@@ -95,8 +94,16 @@ int KdClient::disconnect() {
 	return HandleResult::SUCCESS;
 }
 
-void KdClient::setTargetStateMachine(StateMachine* pStateMachine)
-{
+void KdClient::operator ()() {
+	Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::operator(): Thread started";
+	startMutex.lock();
+	if (threadFinishFlag == true) {
+		return;
+	}
+	waitForTargetEvent();
+}
+
+void KdClient::setTargetStateMachine(StateMachine* pStateMachine) {
 	this->pTargetStateMachine = pStateMachine;
 }
 
@@ -129,14 +136,18 @@ void KdClient::createDebugControl() {
 }
 
 void KdClient::attachKernelTarget(const std::string& parameters) {
+	Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::attachKernel: Parameters: " << parameters;
+
 	if (isKernelAttached == true) {
 		throw DebugClientException(HandleResult::ALREADY_ATTACHED_KERNEL, "Kernel already attached");
 	}
 
 	HRESULT attachKernelResult = pDebugClient->AttachKernel(DEBUG_ATTACH_KERNEL_CONNECTION, parameters.c_str());
 	if (attachKernelResult != S_OK ) {
-		Service::LOGGER << log4cpp::Priority::ERROR << "KdClient::attachKernel: attach to kernel failed. Parameters: " << parameters;
-		Service::LOGGER << log4cpp::Priority::ERROR << "Error: 0x" << std::hex << attachKernelResult;
+		Service::LOGGER << log4cpp::Priority::
+		ERROR << "KdClient::attachKernel: attach to kernel failed. Parameters: " << parameters;
+		Service::LOGGER << log4cpp::Priority::
+		ERROR << "Error: 0x" << std::hex << attachKernelResult;
 		throw DebugClientException(HandleResult::ATTACH_KERNEL_ERROR, "Cann't attach to kernel.");
 	}
 
@@ -148,19 +159,19 @@ void KdClient::setEventHandlers() {
 	if (pDebugClient != 0) {
 
 		HRESULT setEventCallbacksResult = pDebugClient->SetEventCallbacks(&debugEventCallbacks);
-		if (setEventCallbacksResult != S_OK) {
+		if (setEventCallbacksResult != S_OK ) {
 			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set EventHandlersCallbacks. Error: 0x" << std::hex << setEventCallbacksResult;
 			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
 		}
 
-/*		HRESULT setInputCallbacksResult = pDebugClient->SetInputCallbacks(&debugInputCallbacks);
-		if (setInputCallbacksResult != S_OK) {
-			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set InputHandlersCallbacks. Error: 0x" << std::hex << setInputCallbacksResult;
-			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
-		}*/
+		/*		HRESULT setInputCallbacksResult = pDebugClient->SetInputCallbacks(&debugInputCallbacks);
+		 if (setInputCallbacksResult != S_OK) {
+		 Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set InputHandlersCallbacks. Error: 0x" << std::hex << setInputCallbacksResult;
+		 throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
+		 }*/
 
-		HRESULT setOutputCallbacksResult = pDebugClient->SetOutputCallbacks(&debugOutputCallbacks);
-		if (setOutputCallbacksResult != S_OK) {
+		HRESULT setOutputCallbacksResult = pDebugClient->SetOutputCallbacks(pDebugOutputCallbacks.get());
+		if (setOutputCallbacksResult != S_OK ) {
 			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set OutputHandlersCallbacks. Error: 0x" << std::hex << setOutputCallbacksResult;
 			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
 		}

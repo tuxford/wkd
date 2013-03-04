@@ -15,7 +15,6 @@
 namespace Command {
 
 void CommandHandler::handle(const std::vector<std::wstring> &parameters) {
-
 	if (parameters.size() && (parameters[0] == Install::COMMAND)) {
 		bool isInstallSuccess = false;
 
@@ -30,6 +29,7 @@ void CommandHandler::handle(const std::vector<std::wstring> &parameters) {
 	}
 	else {
 		Run::run(parameters);
+		Run::wait();
 	}
 
 }

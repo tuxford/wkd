@@ -15,8 +15,9 @@ namespace States {
 
 const StateId ConnectedState::THIS_STATE_ID = "connected";
 
-ConnectedState::ConnectedState() {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "InitialState::InitialState";
+ConnectedState::ConnectedState(ConnectedState::my_context cxt) :
+		my_base( cxt ){
+	Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::ConnectedState";
 }
 
 ConnectedState::~ConnectedState() {
@@ -24,8 +25,11 @@ ConnectedState::~ConnectedState() {
 
 boost::statechart::result ConnectedState::react(const Events::AttachKernelEvent& attachKernelEvent) {
 	try {
+		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react: 0";
 		context<StateMachine>().getDebugClient()->attachKenel(attachKernelEvent.getAttachKernelParams());
+		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react: 1";
 		context<StateMachine>().updateTargetStateInfo(ConnectedState::getStateContext());
+		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react: 2";
 	}
 	catch(DebugClientException &e) {
 		if (e.getErrorCode() != ALREADY_ATTACHED_KERNEL) {

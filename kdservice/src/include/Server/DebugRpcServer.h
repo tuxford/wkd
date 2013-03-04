@@ -12,8 +12,6 @@
 #include "Server/IDebugServer.h"
 #include "IRunnable.h"
 
-#include <xmlrpc-c/registry.hpp>
-#include <xmlrpc-c/server_cgi.hpp>
 #include <vector>
 
 namespace Server {
@@ -30,10 +28,10 @@ private:
 	static const unsigned long WAIT_TIMEOUT_MS;
 
 	unsigned int port;
-	xmlrpc_c::serverCgi *pAbyssRpcServer;
+//	xmlrpc_c::serverCgi *pAbyssRpcServer;
 	Methods::MethodRegistry methodRegistry;
 
-	void initRpcMethodRegistry(xmlrpc_c::registry& xmlrpcRegistry);
+//	void initRpcMethodRegistry(xmlrpc_c::registry& xmlrpcRegistry);
 	void initRpcServer();
 	void updatePortIfNeed();
 

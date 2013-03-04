@@ -9,6 +9,7 @@
 #define Debugger_FakeClient_H_
 
 #include "Debugger/IClient.h"
+#include "Debugger/StateMachine.h"
 
 namespace Debugger {
 
@@ -17,8 +18,15 @@ public:
 	FakeClient();
 	virtual ~FakeClient();
 
-	virtual void connect(const std::string& parameters);
+	virtual const States::TargetStateInfo getTargetStateInfo() const;
+	virtual void connect();
+	virtual void attachKenel(const std::string& parameters);
 	virtual void disconnect();
+
+	void setTargetStateMachine(StateMachine* pStateMachine);
+
+private:
+	StateMachine* pStateMachine;
 };
 
 } /* namespace Debugger */

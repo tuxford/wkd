@@ -9,7 +9,12 @@
 #include "Server/IDebugServer.h"
 #include "Server/DebugRpcServer.h"
 #include "Server/Methods/Impl/KdConnectMethod.h"
+#include "Server/Methods/Impl/KdAttachKernelMethod.h"
+#ifndef SIM
 #include "Debugger/KdClient.h"
+#else
+#include "Debugger/FakeClient.h"
+#endif
 #include "Debugger/Events/EntryEvent.h"
 #include "Debugger/States/InitialState.h"
 
@@ -35,9 +40,11 @@ boost::shared_ptr<IDebugServer> ServerBuilder::build(const unsigned int& port) {
 void ServerBuilder::initMethodRegistry(Methods::MethodRegistry &methodRegistry, boost::shared_ptr<Debugger::StateMachine> pDebuggerStateMachine) {
 
 	methodRegistry.addMethod(new Methods::KdConnectMethod(pDebuggerStateMachine));
+	methodRegistry.addMethod(new Methods::KdAttachKernelMethod(pDebuggerStateMachine));
 
 }
 
+#ifndef SIM
 boost::shared_ptr<Debugger::StateMachine> ServerBuilder::buildDebuggerStateMachine() {
 	boost::shared_ptr<Debugger::KdClient> pDebugClient(new Debugger::KdClient());
 
@@ -50,5 +57,18 @@ boost::shared_ptr<Debugger::StateMachine> ServerBuilder::buildDebuggerStateMachi
 
 	return pDebuggerStateMachine;
 }
+#else
+boost::shared_ptr<Debugger::StateMachine> ServerBuilder::buildDebuggerStateMachine() {
+	boost::shared_ptr<Debugger::FakeClient> pDebugClient(new Debugger::FakeClient());
 
+	boost::shared_ptr<Debugger::StateMachine> pDebuggerStateMachine(new Debugger::StateMachine(pDebugClient));
+
+	pDebugClient->setTargetStateMachine(pDebuggerStateMachine.get());
+
+	pDebuggerStateMachine->initiate();
+	pDebuggerStateMachine->process_event(Debugger::Events::EntryEvent());
+
+	return pDebuggerStateMachine;
+}
+#endif
 } /* namespace Server */

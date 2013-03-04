@@ -14,9 +14,11 @@
 #include <log4cpp/Category.hh>
 
 #include <iostream>
-
+#ifndef SIM
 int wmain(int argc, wchar_t **argv) {
-
+#else
+int main(int argc, char **argv) {
+#endif
 	log4cpp::OstreamAppender *appender = new log4cpp::OstreamAppender("default", &std::cout);
 	appender->setLayout(new log4cpp::BasicLayout());
 	log4cpp::Category &root = log4cpp::Category::getRoot();
@@ -29,7 +31,7 @@ int wmain(int argc, wchar_t **argv) {
 
 		std::vector<std::wstring> parameters;
 		for (int i = 0; i < argc - 1; i++) {
-			parameters.push_back(std::wstring(argv[i]));
+//			parameters.push_back(std::wstring(argv[i]));
 		}
 
 		Command::CommandHandler::handle(parameters);

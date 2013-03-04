@@ -16,16 +16,22 @@ const std::string DebugEventRpcSender::EVENT_LISTENER_URL = "http://localhost:21
 const std::string DebugEventRpcSender::STATE_CHANGED_EVENT_METHOD = "TargetStateEvent.onEvent";
 const std::string DebugEventRpcSender::OUTPUT_EVENT_METHOD = "OutputEvent.onEvent";
 
-DebugEventRpcSender::DebugEventRpcSender() {
-
+DebugEventRpcSender::DebugEventRpcSender() :
+		pXmlrpcClient(0) {
+	pXmlrpcClient = new xmlrpc_c::clientSimple();
 }
 
-void DebugEventRpcSender::notifyEvent(const Events::ChangeStateEvent& event) {
+DebugEventRpcSender::~DebugEventRpcSender() {
+	delete pXmlrpcClient;
+}
+
+void DebugEventRpcSender::notify(const Events::ChangeStateEvent& event) {
 	xmlrpc_c::value result;
 
 	try {
 		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugEventRpcSender::notifyEvent: (state changed) " << EventSerializer::servialize(event);
-		xmlrpcClient.call(EVENT_LISTENER_URL, STATE_CHANGED_EVENT_METHOD, "s", &result, EventSerializer::servialize(event).c_str());
+		pXmlrpcClient->call(EVENT_LISTENER_URL, STATE_CHANGED_EVENT_METHOD, "s", &result, EventSerializer::servialize(event).c_str());
+		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugEventRpcSender::notifyEvent: 0";
 	}
 	catch (std::exception &e) {
 //		FIXME: exception
@@ -38,12 +44,12 @@ void DebugEventRpcSender::notifyEvent(const Events::ChangeStateEvent& event) {
 	}
 }
 
-void DebugEventRpcSender::notifyEvent(const Events::OutputEvent& event) {
+void DebugEventRpcSender::notify(const Events::OutputEvent& event) {
 	xmlrpc_c::value result;
 
 	try {
 		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugEventRpcSender::notifyEvent (debug message): " << event.getMessage();
-		xmlrpcClient.call(EVENT_LISTENER_URL, OUTPUT_EVENT_METHOD, "s", &result, event.getMessage().c_str());
+		pXmlrpcClient->call(EVENT_LISTENER_URL, OUTPUT_EVENT_METHOD, "s", &result, event.getMessage().c_str());
 	}
 	catch (std::exception &e) {
 //		FIXME: exception

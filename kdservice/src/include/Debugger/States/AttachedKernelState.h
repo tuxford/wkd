@@ -17,6 +17,8 @@ namespace States {
 
 class AttachedKernelState: public boost::statechart::simple_state<AttachedKernelState, StateMachine> {
 public:
+	AttachedKernelState();
+
 	virtual ~AttachedKernelState();
 
 private:

@@ -30,7 +30,8 @@ xmlrpc_value* KdConnectMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value * co
 	try {
 		Service::LOGGER << log4cpp::Priority::DEBUG << "KdConnectMethod::execute: connecting in process";
 		pDebugStateMachine->process_event(Debugger::Events::ConnectEvent());
-		return xmlrpc_build_value(pEnv, "i", AsyncExecuteResult::SUCCESS);
+		Service::LOGGER << log4cpp::Priority::DEBUG << "KdConnectMethod::execute: 0";
+		return xmlrpc_build_value(pEnv, "i", SUCCESS);
 
 	}
 	catch (...) {

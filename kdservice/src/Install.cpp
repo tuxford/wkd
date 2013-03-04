@@ -8,7 +8,9 @@
 #include "Command/Install.h"
 #include "Service.h"
 
+#ifndef SIM
 #include <windows.h>
+#endif
 
 #include <iostream>
 
@@ -17,6 +19,7 @@ namespace Command {
 const std::wstring Install::COMMAND = L"install";
 
 bool Install::install() {
+#ifndef SIM
 	const int max_path_size = 1024;
 	char path[max_path_size];
 	if (!GetModuleFileNameA(NULL, path, max_path_size)) {
@@ -42,7 +45,7 @@ bool Install::install() {
 
 	CloseServiceHandle(schService);
 	CloseServiceHandle(schScManager);
-
+#endif
 	return true;
 }
 

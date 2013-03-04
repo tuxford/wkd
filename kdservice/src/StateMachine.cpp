@@ -25,7 +25,7 @@ States::TargetStateInfo StateMachine::getTargetStateInfo() const {
 void StateMachine::updateTargetStateInfo(const States::TargetStateInfo& targetStateInfo) {
 	try {
 		this->targetStateInfo = targetStateInfo;
-		debugEventSender.notifyEvent(Notifier::Events::ChangeStateEvent(targetStateInfo));
+		debugEventSender.notify(Notifier::Events::ChangeStateEvent(targetStateInfo));
 	}
 	catch(...) {
 		Service::LOGGER << log4cpp::Priority::DEBUG << "StateMachine::updateTargetStateInfo: can't send event.";
