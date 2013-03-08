@@ -41,7 +41,6 @@ void ServerBuilder::initMethodRegistry(Methods::MethodRegistry &methodRegistry, 
 
 	methodRegistry.addMethod(new Methods::KdConnectMethod(pDebuggerStateMachine));
 	methodRegistry.addMethod(new Methods::KdAttachKernelMethod(pDebuggerStateMachine));
-
 }
 
 #ifndef SIM
@@ -53,7 +52,6 @@ boost::shared_ptr<Debugger::StateMachine> ServerBuilder::buildDebuggerStateMachi
 	pDebugClient->setTargetStateMachine(pDebuggerStateMachine.get());
 
 	pDebuggerStateMachine->initiate();
-	pDebuggerStateMachine->process_event(Debugger::Events::EntryEvent());
 
 	return pDebuggerStateMachine;
 }

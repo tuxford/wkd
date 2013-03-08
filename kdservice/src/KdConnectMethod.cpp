@@ -11,6 +11,8 @@
 #include "Debugger/Events/ConnectEvent.h"
 #include "Service.h"
 
+#include <boost/interprocess/sync/scoped_lock.hpp>
+
 #include <iostream>
 #include <exception>
 
@@ -25,11 +27,24 @@ KdConnectMethod::KdConnectMethod(boost::shared_ptr<Debugger::StateMachine> pStat
 			pDebugStateMachine(pStateMachine) {
 }
 
+KdConnectMethod::~KdConnectMethod() {
+	Service::LOGGER << log4cpp::Priority::WARN << "KdConnectMethod::~KdConnectMethod: ";
+	if (pExecutionThread.get()) {
+		pExecutionThread->join();
+	}
+}
+
 xmlrpc_value* KdConnectMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray) {
+	if (pExecutionThread.get()) {
+		Service::LOGGER << log4cpp::Priority::WARN << "KdConnectMethod::execute: thread is initialized. ";
+	}
+
+	boost::interprocess::scoped_lock<boost::mutex> lock(executionMutex);
 
 	try {
 		Service::LOGGER << log4cpp::Priority::DEBUG << "KdConnectMethod::execute: connecting in process";
-		pDebugStateMachine->process_event(Debugger::Events::ConnectEvent());
+		boost::shared_ptr<boost::thread> pThread(new boost::thread(boost::bind(&KdConnectMethod::operator(), this)));
+		pExecutionThread = pThread;
 		Service::LOGGER << log4cpp::Priority::DEBUG << "KdConnectMethod::execute: 0";
 		return xmlrpc_build_value(pEnv, "i", SUCCESS);
 
@@ -39,6 +54,11 @@ xmlrpc_value* KdConnectMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value * co
 		return xmlrpc_build_value(pEnv, "i", INTERNAL_ERROR);
 	}
 
+}
+
+void KdConnectMethod::operator()() {
+	boost::interprocess::scoped_lock<boost::mutex> lock(executionMutex);
+	pDebugStateMachine->process_event(Debugger::Events::ConnectEvent());
 }
 
 } /* namespace Methods */

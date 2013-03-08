@@ -22,16 +22,15 @@ class ConnectedState: public boost::statechart::state<ConnectedState, StateMachi
 public:
 	typedef boost::mpl::list<boost::statechart::custom_reaction<Events::AttachKernelEvent> > reactions;
 
-	ConnectedState(my_context cxt );
+	ConnectedState(my_context cxt);
 	virtual ~ConnectedState();
 
 	boost::statechart::result react(const Events::AttachKernelEvent& attachKernelEvent);
 
-	static TargetStateInfo getStateContext();
-
 private:
 	static const StateId THIS_STATE_ID;
 
+	void updateContext();
 };
 
 } /* namespace States */

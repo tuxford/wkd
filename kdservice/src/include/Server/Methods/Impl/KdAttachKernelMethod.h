@@ -12,6 +12,8 @@
 #include "Debugger/StateMachine.h"
 
 #include <boost/shared_ptr.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread.hpp>
 
 namespace Server {
 namespace Methods {
@@ -20,14 +22,19 @@ class KdAttachKernelMethod: public AbstractMethod {
 
 public:
 	KdAttachKernelMethod(boost::shared_ptr<Debugger::StateMachine> pStateMachine);
+//	~KdAttachKernelMethod();
 
 	virtual xmlrpc_value* execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray);
 
+	void operator()();
 private:
 	static const std::string METHOD_NAME;
 	static const std::string METHOD_SIGNATURE;
 
 	boost::shared_ptr<Debugger::StateMachine> pDebugStateMachine;
+	boost::mutex executionMutex;
+	boost::shared_ptr<boost::thread> pExecutionThread;
+	std::string connectParameters;
 };
 
 } /* namespace Methods */

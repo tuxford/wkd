@@ -5,8 +5,8 @@
  *      Author: Roman Luchyshyn
  */
 
-#include "Debugger/States/InitialState.h"
 #include "Debugger/States/ConnectedState.h"
+#include "Debugger/States/InitialState.h"
 #include "Debugger/Debugger.h"
 
 #include "Service.h"
@@ -16,8 +16,10 @@ namespace States {
 
 const StateId InitialState::THIS_STATE_ID = "initial";
 
-InitialState::InitialState() {
+InitialState::InitialState(InitialState::my_context cxt) : my_base(cxt)
+{
 	Service::LOGGER << log4cpp::Priority::DEBUG << "InitialState::InitialState";
+	updateContext();
 }
 
 InitialState::~InitialState() {
@@ -36,7 +38,6 @@ boost::statechart::result InitialState::react(const Events::ConnectEvent& event)
 
 	try {
 		context<StateMachine>().getDebugClient()->connect();
-		context<StateMachine>().updateTargetStateInfo(ConnectedState::getStateContext());
 	}
 	catch(DebugClientException &e) {
 		if (e.getErrorCode() != ALREADY_INITILIZED) {
@@ -56,8 +57,8 @@ void InitialState::updateContext() {
 	targetStateInfo.canTerminate = false;
 	targetStateInfo.isDisconnected = true;
 	targetStateInfo.isSuspended = false;
-	targetStateInfo.isTerminated = true;
-	targetStateInfo.stateId = "initial";
+	targetStateInfo.isTerminated = false;
+	targetStateInfo.stateId = THIS_STATE_ID;
 
 	context<StateMachine>().updateTargetStateInfo(targetStateInfo);
 }

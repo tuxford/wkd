@@ -19,14 +19,14 @@
 namespace Debugger {
 namespace States {
 
-class InitialState: public boost::statechart::simple_state<InitialState, StateMachine> {
+class InitialState: public boost::statechart::state<InitialState, StateMachine> {
 public:
 	typedef boost::mpl::list<
 			boost::statechart::custom_reaction<Events::EntryEvent>,
 			boost::statechart::custom_reaction<Events::ConnectEvent>
 			> reactions;
 
-	InitialState();
+	InitialState(my_context context);
 	virtual ~InitialState();
 
 	boost::statechart::result react(const Events::EntryEvent& event);

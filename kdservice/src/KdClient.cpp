@@ -28,7 +28,7 @@ const States::TargetStateInfo KdClient::getTargetStateInfo() const {
 	return pTargetStateMachine->context<StateMachine>().getTargetStateInfo();
 }
 
-int KdClient::connect() {
+void KdClient::connect() {
 	try {
 		startMutex.lock();
 		threadFinishFlag = false;
@@ -44,13 +44,10 @@ int KdClient::connect() {
 		if (e.getErrorCode() == UNEXPECTED_ERROR) {
 			throw;
 		}
-		return e.getErrorCode();
 	}
-
-	return HandleResult::SUCCESS;
 }
 
-int KdClient::attachKenel(const std::string& parameters) {
+void KdClient::attachKenel(const std::string& parameters) {
 	try {
 		attachKernelTarget(parameters);
 	}
@@ -58,13 +55,10 @@ int KdClient::attachKenel(const std::string& parameters) {
 		if (e.getErrorCode() == UNEXPECTED_ERROR) {
 			throw;
 		}
-		return e.getErrorCode();
 	}
-
-	return HandleResult::SUCCESS;
 }
 
-int KdClient::disconnect() {
+void KdClient::disconnect() {
 	startMutex.unlock();
 	threadFinishFlag = true;
 	pTargetStateThread->join();
@@ -90,8 +84,6 @@ int KdClient::disconnect() {
 	else {
 		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Attempt to destroy uninitialized object \"pDebugClient\"");
 	}
-
-	return HandleResult::SUCCESS;
 }
 
 void KdClient::operator ()() {

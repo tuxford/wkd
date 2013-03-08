@@ -23,6 +23,7 @@ States::TargetStateInfo StateMachine::getTargetStateInfo() const {
 }
 
 void StateMachine::updateTargetStateInfo(const States::TargetStateInfo& targetStateInfo) {
+	Service::LOGGER << log4cpp::Priority::DEBUG << "StateMachine::updateTargetStateInfo: enter";
 	try {
 		this->targetStateInfo = targetStateInfo;
 		debugEventSender.notify(Notifier::Events::ChangeStateEvent(targetStateInfo));

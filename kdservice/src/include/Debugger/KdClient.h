@@ -26,9 +26,9 @@ public:
 	KdClient();
 
 	virtual const States::TargetStateInfo getTargetStateInfo() const;
-	virtual int connect();
-	virtual int attachKenel(const std::string& parameters);
-	virtual int disconnect();
+	virtual void connect();
+	virtual void attachKenel(const std::string& parameters);
+	virtual void disconnect();
 	virtual void operator ()();
 
 	void setTargetStateMachine(StateMachine* pStateMachine);

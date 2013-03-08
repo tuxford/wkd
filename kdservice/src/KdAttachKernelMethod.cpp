@@ -11,6 +11,8 @@
 #include "Debugger/Debugger.h"
 #include "Service.h"
 
+#include <boost/interprocess/sync/scoped_lock.hpp>
+
 namespace Server {
 namespace Methods {
 
@@ -24,14 +26,19 @@ KdAttachKernelMethod::KdAttachKernelMethod(boost::shared_ptr<Debugger::StateMach
 }
 
 xmlrpc_value* KdAttachKernelMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray) {
+	if (pExecutionThread.get()) {
+		Service::LOGGER << log4cpp::Priority::WARN << "KdAttachKernelMethod::execute: thread is initialized. ";
+	}
+
+	boost::interprocess::scoped_lock<boost::mutex> lock(executionMutex);
+
 	try {
 
 		const char* pConnectParameters = 0;
-		xmlrpc_decompose_value(pEnv, pParamArray, "s", &pConnectParameters);
-
-		Service::LOGGER << log4cpp::Priority::DEBUG << "KdAttachKernelMethod::execute: 0";
-		pDebugStateMachine->process_event(Debugger::Events::AttachKernelEvent(std::string(pConnectParameters)));
-		Service::LOGGER << log4cpp::Priority::DEBUG << "KdAttachKernelMethod::execute: attached successfully";
+		xmlrpc_decompose_value(pEnv, pParamArray, "(s)", &pConnectParameters);
+		connectParameters = std::string(pConnectParameters);
+		boost::shared_ptr<boost::thread> pThread(new boost::thread(boost::bind(&KdAttachKernelMethod::operator(), this)));
+		pExecutionThread = pThread;
 		return xmlrpc_build_value(pEnv, "i", 0);
 
 	}
@@ -47,6 +54,11 @@ xmlrpc_value* KdAttachKernelMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value
 		Service::LOGGER << log4cpp::Priority::ERROR << "KdAttachKernelMethod::execute: unknown exception";
 		return xmlrpc_build_value(pEnv, "i", INTERNAL_ERROR);
 	}
+}
+
+void KdAttachKernelMethod::operator()() {
+	boost::interprocess::scoped_lock<boost::mutex> lock(executionMutex);
+	pDebugStateMachine->process_event(Debugger::Events::AttachKernelEvent(connectParameters));
 }
 
 } /* namespacrue Methods */

@@ -15,21 +15,19 @@ namespace States {
 
 const StateId ConnectedState::THIS_STATE_ID = "connected";
 
-ConnectedState::ConnectedState(ConnectedState::my_context cxt) :
-		my_base( cxt ){
+ConnectedState::ConnectedState(my_context cxt) :
+		my_base(cxt){
 	Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::ConnectedState";
+	updateContext();
 }
 
 ConnectedState::~ConnectedState() {
 }
 
 boost::statechart::result ConnectedState::react(const Events::AttachKernelEvent& attachKernelEvent) {
+	Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react: entry";
 	try {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react: 0";
 		context<StateMachine>().getDebugClient()->attachKenel(attachKernelEvent.getAttachKernelParams());
-		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react: 1";
-		context<StateMachine>().updateTargetStateInfo(ConnectedState::getStateContext());
-		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react: 2";
 	}
 	catch(DebugClientException &e) {
 		if (e.getErrorCode() != ALREADY_ATTACHED_KERNEL) {
@@ -41,7 +39,7 @@ boost::statechart::result ConnectedState::react(const Events::AttachKernelEvent&
 	return transit<AttachedKernelState>();
 }
 
-TargetStateInfo ConnectedState::getStateContext() {
+void ConnectedState::updateContext() {
 
 	TargetStateInfo targetStateInfo;
 	targetStateInfo.canDisconnect = true;
@@ -53,7 +51,7 @@ TargetStateInfo ConnectedState::getStateContext() {
 	targetStateInfo.isTerminated = false;
 	targetStateInfo.stateId = THIS_STATE_ID;
 
-	return targetStateInfo;
+	context<StateMachine>().updateTargetStateInfo(targetStateInfo);
 }
 
 
