@@ -28,21 +28,23 @@ AbstractAsynchronousMethod::~AbstractAsynchronousMethod() {
 }
 
 xmlrpc_value* AbstractAsynchronousMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray) {
-	unsigned int cancelReason = isActionCanceled();
-	if (cancelReason) {
-		return xmlrpc_build_value(pEnv, "i", cancelReason);
-	}
-
-	if (pExecutionThread.get()) {
-		Service::LOGGER << log4cpp::Priority::WARN << "AbstractAsynchronousMethod::execute: thread is initialized. ";
-	}
-
-	boost::interprocess::scoped_lock<boost::mutex> lock(executionMutex);
-
 	try {
+		unsigned int cancelReason = isActionCanceled();
+		if (cancelReason) {
+			return xmlrpc_build_value(pEnv, "i", cancelReason);
+		}
+
+		if (pExecutionThread.get()) {
+			Service::LOGGER << log4cpp::Priority::WARN << "AbstractAsynchronousMethod::execute: thread is initialized. ";
+		}
+
+		boost::interprocess::scoped_lock<boost::mutex> lock(executionMutex);
+
 		handleParameters(pEnv, pParamArray);
+
 		boost::shared_ptr<boost::thread> pThread(new boost::thread(boost::bind(&IRunnable::operator(), this)));
 		pExecutionThread = pThread;
+
 		Service::LOGGER << log4cpp::Priority::DEBUG << "AbstractAsynchronousMethod::execute: scheduled successfully";
 		return xmlrpc_build_value(pEnv, "i", 0);
 

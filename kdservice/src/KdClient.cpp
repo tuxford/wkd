@@ -140,16 +140,21 @@ void KdClient::run() {
 }
 
 void KdClient::operator ()() {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::operator(): Thread started";
-	startMutex.lock();
+	try {
+		Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::operator(): Thread started";
+		startMutex.lock();
 
-	pTargetStateMachine->process_event(Events::RanEvent());
+		pTargetStateMachine->process_event(Events::RanEvent());
 
-	if (threadFinishFlag == true) {
-		return;
+		if (threadFinishFlag == true) {
+			return;
+		}
+
+		waitForTargetEvent();
 	}
-
-	waitForTargetEvent();
+	catch(...) {
+		Service::LOGGER << log4cpp::Priority::ERROR << "KdClient::operator(): exception in the thread";
+	}
 }
 
 void KdClient::setTargetStateMachine(StateMachine* pStateMachine) {
