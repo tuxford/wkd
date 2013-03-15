@@ -65,23 +65,23 @@ public class WkdLaunchConfigurationDelegate implements  ILaunchConfigurationDele
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}*/
-		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		IWorkbenchPage activePage = workbenchWindow.getActivePage();
-		activePage.showView(IConsoleConstants.ID_CONSOLE_VIEW, null, IWorkbenchPage.VIEW_VISIBLE);
-		TextConsole textConsole = new TextConsole("Target", null, null, false) {
+//		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+//		IWorkbenchPage activePage = workbenchWindow.getActivePage();
+//		activePage.showView(IConsoleConstants.ID_CONSOLE_VIEW, null, IWorkbenchPage.VIEW_VISIBLE);
+//		TextConsole textConsole = new TextConsole("Target", null, null, false) {
 			
-			@Override
-			protected IConsoleDocumentPartitioner getPartitioner() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		};
-		ConsolePlugin.getDefault().getConsoleManager().addConsoles(new IConsole[]{textConsole});
+//			@Override
+//			protected IConsoleDocumentPartitioner getPartitioner() {
+//				// TODO Auto-generated method stub
+//				return null;
+//			}
+//		};
+//		ConsolePlugin.getDefault().getConsoleManager().addConsoles(new IConsole[]{textConsole});
 
-		IConsole[] consoles = ConsolePlugin.getDefault().getConsoleManager().getConsoles();
-		for(IConsole console : consoles) {
-			System.out.println("Console: " + console.getName() + " ;type=" + console.getType());
-		}
+//		IConsole[] consoles = ConsolePlugin.getDefault().getConsoleManager().getConsoles();
+//		for(IConsole console : consoles) {
+//			System.out.println("Console: " + console.getName() + " ;type=" + console.getType());
+//		}
 	
 
 		if (!mode.equals(ILaunchManager.DEBUG_MODE)) {

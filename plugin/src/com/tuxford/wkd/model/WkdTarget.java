@@ -220,11 +220,27 @@ public class WkdTarget extends PlatformObject implements IDebugTarget {
 		
 		if (targetState.getStateId().equals(BasicTargetStates.CONNECTED)) {
 			try {
-				debugClient.attachKernel("1394:channel=1");
+				debugClient.attachKernel("1394:channel=11");
+				System.out.println("Attach : ");
 			}
 			catch (Exception e) {
+				System.out.println("Attach failed: " + e.getMessage());
 //TODO: add attach kernel error handling				
 			}
 		}		
+		else if (targetState.getStateId().equals(BasicTargetStates.ATTACHED_KERNEL)) {
+			try {
+//TODO: parameters must be took from launch configuration
+				int setSourcePathResult = debugClient.setSourcePath("E:\\runtime-New_configuration\\sources_kmd\\");
+				if (setSourcePathResult != 0) {
+					System.out.print("Set source path failed: ");
+					System.out.print(setSourcePathResult);
+					System.out.println();
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				System.out.println("Set source path failed with exception: " + e.getMessage());
+			}
+		}
 	}
 }

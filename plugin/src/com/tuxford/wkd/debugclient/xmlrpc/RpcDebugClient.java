@@ -11,16 +11,29 @@ import com.tuxford.wkd.debugclient.ITargetStateEventHandler;
 public class RpcDebugClient implements IDebugClient {
 
 	private static final String KD_CONNECT_METHOD_ID = "Kd.connect";
+	private static final String KD_DISCONNECT_METHOD_ID = "Kd.disconnect";
 	private static final String KD_ATTACH_KERNEL_METHOD_ID = "Kd.attachKernel";
+	private static final String KD_SET_SYMBOL_PATH_ID = "Kd.setSymbolFilePath";
+	private static final String KD_SET_SOURCE_PATH_ID = "Kd.setSourcePath";
+	private static final String KD_SET_DRIVER_REPLACEMENT_MAP_ID = "Kd.setDriverReplacementMap";
 	
 	private XmlRpcClientConfigImpl clientConfig = new XmlRpcClientConfigImpl();
 	private XmlRpcClient xmlrpcClient = new XmlRpcClient();
 	private RpcEventListener rpcEventListener;
 	private RpcTargetState rpcTargetState = RpcTargetState.getNoTargetState();
 
+	@Override
 	public int connect() throws Exception {
 		Object params[] = {};
 		Integer result = (Integer)xmlrpcClient.execute(KD_CONNECT_METHOD_ID, params);
+		
+		return result.intValue();
+	}
+	
+	@Override
+	public int disconnect() throws Exception {
+		Object params[] = {};
+		Integer result = (Integer)xmlrpcClient.execute(KD_DISCONNECT_METHOD_ID, params);
 		
 		return result.intValue();
 	}
@@ -34,7 +47,32 @@ public class RpcDebugClient implements IDebugClient {
 		return result.intValue();
 	}
 
+	@Override
+	public int setSymbolFilePath(String symbolPath) throws Exception {
+		Object params[] = {symbolPath};
+		Integer result = (Integer)xmlrpcClient.execute(KD_SET_SYMBOL_PATH_ID, params);
+		
+		System.out.println(result.toString());
+		return result.intValue();
+	}
+	
+	@Override
+	public int setSourcePath(String sourcePath) throws Exception {
+		Object params[] = {sourcePath};
+		Integer result = (Integer)xmlrpcClient.execute(KD_SET_SOURCE_PATH_ID, params);
+		
+		System.out.println(result.toString());
+		return result.intValue();
+	}
 
+	public int setDriverReplacementMap(String oldDriver, String newDriver) throws Exception {
+		Object params[] = {oldDriver, newDriver};
+		Integer result = (Integer)xmlrpcClient.execute(KD_SET_DRIVER_REPLACEMENT_MAP_ID, params);
+		
+		System.out.println(result.toString());
+		return result.intValue();
+	}
+	
 	public ITargetState getTargetState() {
 		return rpcTargetState;
 	}
