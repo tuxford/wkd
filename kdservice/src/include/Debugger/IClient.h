@@ -24,6 +24,10 @@ public:
 	virtual void connect() = 0;
 	virtual void attachKenel(const std::string& parameters) = 0;
 	virtual void disconnect() = 0;
+	virtual void setSourcePath(const std::string& sourcePath) = 0;
+	virtual void setSymbolFilePath(const std::string& sourcePath) = 0;
+	virtual void setDriverReplacemnetMap(const std::string& oldDriver, const std::string& newDriver) = 0;
+	virtual void run() = 0;
 };
 
 }  // namespace Debugger

@@ -34,8 +34,9 @@ DebugEventRpcSender::~DebugEventRpcSender() {
 }
 
 void DebugEventRpcSender::notify(const Events::ChangeStateEvent& event) {
+
 	try {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugEventRpcSender::notifyEvent: (state changed) " << EventSerializer::servialize(event);
+		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugEventRpcSender::notifyEvent: (state changed) " << event.getTargetStateInfo().stateId << " message queued";
 		messageQueue.push(EventSerializer::servialize(event));
 	}
 	catch (std::exception &e) {

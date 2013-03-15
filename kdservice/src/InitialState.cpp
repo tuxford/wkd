@@ -14,7 +14,7 @@
 namespace Debugger {
 namespace States {
 
-const StateId InitialState::THIS_STATE_ID = "initial";
+const StateId InitialState::STATE_ID = "initial";
 
 InitialState::InitialState(InitialState::my_context cxt) : my_base(cxt)
 {
@@ -58,7 +58,7 @@ void InitialState::updateContext() {
 	targetStateInfo.isDisconnected = true;
 	targetStateInfo.isSuspended = false;
 	targetStateInfo.isTerminated = false;
-	targetStateInfo.stateId = THIS_STATE_ID;
+	targetStateInfo.stateId = STATE_ID;
 
 	context<StateMachine>().updateTargetStateInfo(targetStateInfo);
 }

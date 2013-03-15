@@ -10,6 +10,7 @@
 
 #include "Debugger/StateMachine.h"
 #include "Debugger/Events/AttachKernelEvent.h"
+#include "Debugger/Events/DisconnectEvent.h"
 
 #include <boost/statechart/state.hpp>
 #include <boost/statechart/custom_reaction.hpp>
@@ -20,15 +21,19 @@ namespace States {
 
 class ConnectedState: public boost::statechart::state<ConnectedState, StateMachine> {
 public:
-	typedef boost::mpl::list<boost::statechart::custom_reaction<Events::AttachKernelEvent> > reactions;
+	typedef boost::mpl::list<
+			boost::statechart::custom_reaction<Events::AttachKernelEvent>,
+			boost::statechart::custom_reaction<Events::DisconnectEvent> > reactions;
+
+	static const StateId THIS_STATE_ID;
 
 	ConnectedState(my_context cxt);
 	virtual ~ConnectedState();
 
 	boost::statechart::result react(const Events::AttachKernelEvent& attachKernelEvent);
+	boost::statechart::result react(const Events::DisconnectEvent& disconnectEvent);
 
 private:
-	static const StateId THIS_STATE_ID;
 
 	void updateContext();
 };

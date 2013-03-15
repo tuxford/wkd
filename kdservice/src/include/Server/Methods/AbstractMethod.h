@@ -20,10 +20,12 @@ public:
 	AbstractMethod(const std::string& name, const std::string& signature);
 	virtual ~AbstractMethod();
 
-	virtual xmlrpc_value* execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray) = 0;
 	xmlrpc_method_info3 getMethodInfo();
 	std::string getName() const;
 	std::string getSignature() const;
+
+protected:
+	virtual xmlrpc_value* execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray) = 0;
 
 private:
 	const std::string name;

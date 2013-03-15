@@ -10,6 +10,9 @@
 #include "Server/DebugRpcServer.h"
 #include "Server/Methods/Impl/KdConnectMethod.h"
 #include "Server/Methods/Impl/KdAttachKernelMethod.h"
+#include "Server/Methods/Impl/KdSetSourcePathMethod.h"
+#include "Server/Methods/Impl/KdSetSymbolFilePathMethod.h"
+#include "Server/Methods/Impl/KdDisconnectMethod.h"
 #ifndef SIM
 #include "Debugger/KdClient.h"
 #else
@@ -41,6 +44,8 @@ void ServerBuilder::initMethodRegistry(Methods::MethodRegistry &methodRegistry, 
 
 	methodRegistry.addMethod(new Methods::KdConnectMethod(pDebuggerStateMachine));
 	methodRegistry.addMethod(new Methods::KdAttachKernelMethod(pDebuggerStateMachine));
+	methodRegistry.addMethod(new Methods::KdSetSourcePathMethod(pDebuggerStateMachine));
+	methodRegistry.addMethod(new Methods::KdDisconnectMethod(pDebuggerStateMachine));
 }
 
 #ifndef SIM

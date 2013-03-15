@@ -26,6 +26,8 @@ public:
 			boost::statechart::custom_reaction<Events::ConnectEvent>
 			> reactions;
 
+	static const StateId STATE_ID;
+
 	InitialState(my_context context);
 	virtual ~InitialState();
 
@@ -34,8 +36,6 @@ public:
 
 private:
 	void updateContext();
-
-	static const StateId THIS_STATE_ID;
 };
 
 } /* namespace States */

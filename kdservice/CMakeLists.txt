@@ -28,12 +28,17 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/include)
 
 if(SIM)
 add_executable(KDservice 
-    src/AbstractMethod.cpp
     src/CommandHandler.cpp
     src/DebugRpcServer.cpp
     src/FakeClient.cpp
+    src/AbstractMethod.cpp
+    src/AbstractAsynchronousMethod.cpp
     src/KdConnectMethod.cpp
     src/KdAttachKernelMethod.cpp
+    src/KdSetSourcePathMethod.cpp
+    src/KdSetSymbolFilePathMethod.cpp
+    src/KdRunMethod.cpp
+    src/KdDisconnectMethod.cpp
     src/kdservice.cpp
     src/MethodRegistry.cpp
     src/DebugEventRpcSender.cpp
@@ -49,6 +54,8 @@ add_executable(KDservice
     src/InitialState.cpp
     src/ConnectedState.cpp
     src/AttachedKernelState.cpp
+    src/RunState.cpp
+    src/BreakpointHitState.cpp
     src/ServerBuilder.cpp)
     
 target_link_libraries(KDservice 
@@ -60,13 +67,18 @@ target_link_libraries(KDservice
 else(SIM)
 
 add_executable(KDservice 
-    src/AbstractMethod.cpp
     src/CommandHandler.cpp
     src/DebugRpcServer.cpp
     src/Install.cpp
     src/KdClient.cpp
+    src/AbstractMethod.cpp
+    src/AbstractAsynchronousMethod.cpp
     src/KdConnectMethod.cpp
     src/KdAttachKernelMethod.cpp
+    src/KdSetSourcePathMethod.cpp
+    src/KdSetSymbolFilePathMethod.cpp
+    src/KdDisconnectMethod.cpp
+    src/KdRunMethod.cpp
     src/kdservice.cpp
     src/MethodRegistry.cpp
     src/DebugEventRpcSender.cpp
@@ -81,6 +93,8 @@ add_executable(KDservice
     src/InitialState.cpp
     src/ConnectedState.cpp
     src/AttachedKernelState.cpp
+    src/RunState.cpp
+    src/BreakpointHitState.cpp    
     src/DebugEventCallbacks.cpp
     src/RunWindowsService.cpp
     src/ServerBuilder.cpp)

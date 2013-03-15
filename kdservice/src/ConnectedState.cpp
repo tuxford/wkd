@@ -7,6 +7,8 @@
 
 #include "Debugger/States/ConnectedState.h"
 #include "Debugger/States/AttachedKernelState.h"
+#include "Debugger/States/InitialState.h"
+
 #include "Debugger/Debugger.h"
 #include "Service.h"
 
@@ -35,8 +37,31 @@ boost::statechart::result ConnectedState::react(const Events::AttachKernelEvent&
 			return discard_event();
 		}
 	}
+	catch(...) {
+		//TODO: implement generic error handling
+		return discard_event();
+	}
 
 	return transit<AttachedKernelState>();
+}
+
+boost::statechart::result ConnectedState::react(const Events::DisconnectEvent& disconnectEvent) {
+	try {
+		context<StateMachine>().getDebugClient()->disconnect();
+		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react(Events::DisconnectEvent): disconnect from target";
+	}
+	catch(DebugClientException &e) {
+//TODO: implement generic error handling
+		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react(Events::DisconnectEvent): disconnect failed with exception: " << e.getMessage();
+		return discard_event();
+	}
+	catch(...) {
+//TODO: implement generic error handling
+		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react(Events::DisconnectEvent): disconnect failed with unknown exception" ;
+		return discard_event();
+	}
+
+	return transit<InitialState>();
 }
 
 void ConnectedState::updateContext() {

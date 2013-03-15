@@ -8,7 +8,7 @@
 #ifndef Server_Methods_KdConnectMethod_H_
 #define Server_Methods_KdConnectMethod_H_
 
-#include "Server/Methods/AbstractMethod.h"
+#include "Server/Methods/AbstractAsynchronousMethod.h"
 #include "Debugger/StateMachine.h"
 
 #include <xmlrpc-c/registry.hpp>
@@ -20,21 +20,20 @@
 namespace Server {
 namespace Methods {
 
-class KdConnectMethod: public AbstractMethod {
+class KdConnectMethod: public AbstractAsynchronousMethod {
 public:
 	KdConnectMethod(boost::shared_ptr<Debugger::StateMachine> pStateMachine);
-	~KdConnectMethod();
 
-	xmlrpc_value* execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray);
+protected:
+	virtual unsigned int isActionCanceled() const;
+	virtual void handleParameters(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray);
+	virtual void doAction();
 
-	void operator()();
 private:
 	static const std::string RPC_METHOD_NAME;
 	static const std::string RPC_SIGNATURE;
 
-	boost::shared_ptr<Debugger::StateMachine> pDebugStateMachine;
-	boost::mutex executionMutex;
-	boost::shared_ptr<boost::thread> pExecutionThread;
+	boost::shared_ptr<Debugger::StateMachine> pStateMachine;
 };
 
 } /* namespace Methods */

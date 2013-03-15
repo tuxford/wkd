@@ -125,10 +125,7 @@ void DebugRpcServer::operator()() {
 	serverparm.enable_shutdown = true;
 	serverparm.registryP = registryP;
 	try {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): 0 ";
 		xmlrpc_server_abyss(&env, &serverparm, XMLRPC_APSIZE(registryP));
-//		while(true) {}
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): 1 ";
 	}
 	catch(...) {
 		Service::LOGGER << log4cpp::Priority::INFO << "DebugRpcServer::operator(): exception";

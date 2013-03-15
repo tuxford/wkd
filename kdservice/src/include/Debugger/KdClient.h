@@ -29,6 +29,11 @@ public:
 	virtual void connect();
 	virtual void attachKenel(const std::string& parameters);
 	virtual void disconnect();
+	virtual void setSourcePath(const std::string& sourcePath);
+	virtual void setSymbolFilePath(const std::string& sourcePath);
+	virtual void setDriverReplacemnetMap(const std::string& oldDriver, const std::string& newDriver);
+	virtual void run();
+
 	virtual void operator ()();
 
 	void setTargetStateMachine(StateMachine* pStateMachine);
@@ -47,9 +52,9 @@ private:
 
 	void createDebugClient();
 	void createDebugControl();
+	void createDebugSymbols();
 	void attachKernelTarget(const std::string& parameters);
 	void setEventHandlers();
-	void crateDebugSymbols();
 	void waitForTargetEvent();
 };
 

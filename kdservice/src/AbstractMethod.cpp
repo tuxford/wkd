@@ -6,6 +6,10 @@
  */
 
 #include "Server/Methods/AbstractMethod.h"
+#include "Debugger/Debugger.h"
+#include "Service.h"
+
+#include <boost/interprocess/sync/scoped_lock.hpp>
 
 #include <iostream>
 
@@ -48,6 +52,7 @@ xmlrpc_value* AbstractMethod::executeMethod(xmlrpc_env* const pEnv, xmlrpc_value
 
 	return result;
 }
+
 
 } /* namespace Methods */
 } /* namespace Server */

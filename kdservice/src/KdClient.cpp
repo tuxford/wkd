@@ -8,6 +8,7 @@
 #include "Debugger/KdClient.h"
 #include "Debugger/Debugger.h"
 #include "Debugger/States/InitialState.h"
+#include "Debugger/Events/RanEvent.h"
 #include "Service.h"
 
 #include <exception>
@@ -37,6 +38,7 @@ void KdClient::connect() {
 
 		createDebugClient();
 		createDebugControl();
+		createDebugSymbols();
 		setEventHandlers();
 	}
 	catch (DebugClientException &e) {
@@ -73,6 +75,7 @@ void KdClient::disconnect() {
 		pDebugControl = 0;
 	}
 	else {
+		//FixMe: memory leak
 		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Attempt to destroy uninitialized object \"pDebugControl\"");
 	}
 
@@ -82,16 +85,70 @@ void KdClient::disconnect() {
 		pDebugClient = 0;
 	}
 	else {
+		//FixMe: memory leak
 		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Attempt to destroy uninitialized object \"pDebugClient\"");
 	}
+	if (pDebugSymbols) {
+		pDebugSymbols->Release();
+		pDebugSymbols = 0;
+	}
+
+}
+
+void KdClient::setSourcePath(const std::string& sourcePath) {
+	if (pDebugSymbols) {
+		HRESULT setSourcePathStatus = pDebugSymbols->SetSourcePath(sourcePath.c_str());
+		if (setSourcePathStatus != S_OK) {
+			Service::LOGGER << log4cpp::Priority::ERROR << "Can't set source path. Error: 0x" << std::hex << setSourcePathStatus;
+			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Cann't set source path.");
+		}
+	}
+	else {
+		Service::LOGGER << log4cpp::Priority::WARN << "Attempt to set source path until IDebugSymbols object initialized. Action has no effect.";
+	}
+}
+
+void KdClient::setSymbolFilePath(const std::string& sourcePath) {
+	if (pDebugSymbols) {
+		HRESULT setSymbolPathStatus = pDebugSymbols->SetSymbolPath(sourcePath.c_str());
+		if (setSymbolPathStatus != S_OK) {
+			Service::LOGGER << log4cpp::Priority::ERROR << "Can't set symbol path. Error: 0x" << std::hex << setSymbolPathStatus;
+			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Cann't set symbol path.");
+		}
+	}
+	else {
+		Service::LOGGER << log4cpp::Priority::WARN << "Attempt to set symbol path until IDebugSymbols object initialized. Action has no effect.";
+	}
+}
+
+void KdClient::setDriverReplacemnetMap(const std::string& oldDriver, const std::string& newDriver) {
+	if (pDebugControl) {
+		const std::string cmd = ".kdfiles -m " + oldDriver + " " + newDriver;
+		HRESULT setDriverReplacemnetMapStatus = pDebugControl->Execute(DEBUG_OUTCTL_THIS_CLIENT, cmd.c_str(), DEBUG_EXECUTE_ECHO);
+		if (setDriverReplacemnetMapStatus != S_OK) {
+			Service::LOGGER << log4cpp::Priority::WARN << "Can't set driver replacement map. Error: 0x" << std::hex << setDriverReplacemnetMapStatus;
+			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Cann't set driver replacement map.");
+		}
+	}
+	else {
+		Service::LOGGER << log4cpp::Priority::WARN << "Attempt to set driver replacement map until IDebugControl object initialized. Action has no effect.";
+	}
+}
+
+void KdClient::run() {
+	startMutex.unlock();
 }
 
 void KdClient::operator ()() {
 	Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::operator(): Thread started";
 	startMutex.lock();
+
+	pTargetStateMachine->process_event(Events::RanEvent());
+
 	if (threadFinishFlag == true) {
 		return;
 	}
+
 	waitForTargetEvent();
 }
 
@@ -127,6 +184,19 @@ void KdClient::createDebugControl() {
 	}
 }
 
+void KdClient::createDebugSymbols() {
+	if (pDebugSymbols != 0) {
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "DebugSymbols already exists.");
+	}
+
+	HRESULT queryDebugSymbolsIntefaceStatus = pDebugClient->QueryInterface(__uuidof(IDebugSymbols), (void**)&pDebugSymbols);
+
+	if (queryDebugSymbolsIntefaceStatus != S_OK) {
+		Service::LOGGER << log4cpp::Priority::CRIT << "Debug symbols dosn't support. Error: 0x" << std::hex << queryDebugSymbolsIntefaceStatus;
+		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Debug control dosn't support");
+	}
+}
+
 void KdClient::attachKernelTarget(const std::string& parameters) {
 	Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::attachKernel: Parameters: " << parameters;
 
@@ -136,10 +206,8 @@ void KdClient::attachKernelTarget(const std::string& parameters) {
 
 	HRESULT attachKernelResult = pDebugClient->AttachKernel(DEBUG_ATTACH_KERNEL_CONNECTION, parameters.c_str());
 	if (attachKernelResult != S_OK ) {
-		Service::LOGGER << log4cpp::Priority::
-		ERROR << "KdClient::attachKernel: attach to kernel failed. Parameters: " << parameters;
-		Service::LOGGER << log4cpp::Priority::
-		ERROR << "Error: 0x" << std::hex << attachKernelResult;
+		Service::LOGGER << log4cpp::Priority::ERROR << "KdClient::attachKernel: attach to kernel failed. Parameters: " << parameters;
+		Service::LOGGER << log4cpp::Priority::ERROR << "Error: 0x" << std::hex << attachKernelResult;
 		throw DebugClientException(HandleResult::ATTACH_KERNEL_ERROR, "Cann't attach to kernel.");
 	}
 
@@ -149,7 +217,6 @@ void KdClient::attachKernelTarget(const std::string& parameters) {
 void KdClient::setEventHandlers() {
 
 	if (pDebugClient != 0) {
-
 		HRESULT setEventCallbacksResult = pDebugClient->SetEventCallbacks(&debugEventCallbacks);
 		if (setEventCallbacksResult != S_OK ) {
 			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set EventHandlersCallbacks. Error: 0x" << std::hex << setEventCallbacksResult;
@@ -179,12 +246,16 @@ void KdClient::setEventHandlers() {
 void KdClient::waitForTargetEvent() {
 	HRESULT setIinitialBreakResult = pDebugControl->SetEngineOptions(DEBUG_ENGOPT_INITIAL_BREAK);
 	if (setIinitialBreakResult != S_OK ) {
-		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set initial break");
+		Service::LOGGER << log4cpp::Priority::WARN << "Can't set initial break";
+		return;
 	}
 
-	HRESULT waitForEventResult = pDebugControl->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE);
-	if (waitForEventResult != S_OK ) {
-		throw DebugClientException(HandleResult::TARGET_UNAVAILABLE, "Target not available");
+	while(true) {
+
+		HRESULT waitForEventResult = pDebugControl->WaitForEvent(DEBUG_WAIT_DEFAULT, INFINITE);
+		if (waitForEventResult != S_OK ) {
+			throw DebugClientException(HandleResult::TARGET_UNAVAILABLE, "Target not available");
+		}
 	}
 }
 

@@ -8,7 +8,7 @@
 #ifndef Server_Methods_KdAttachKernelMethod_H_
 #define Server_Methods_KdAttachKernelMethod_H_
 
-#include "Server/Methods/AbstractMethod.h"
+#include "Server/Methods/AbstractAsynchronousMethod.h"
 #include "Debugger/StateMachine.h"
 
 #include <boost/shared_ptr.hpp>
@@ -18,22 +18,23 @@
 namespace Server {
 namespace Methods {
 
-class KdAttachKernelMethod: public AbstractMethod {
+class KdAttachKernelMethod: public AbstractAsynchronousMethod {
 
 public:
 	KdAttachKernelMethod(boost::shared_ptr<Debugger::StateMachine> pStateMachine);
-//	~KdAttachKernelMethod();
+//	virtual ~KdAttachKernelMethod();
 
-	virtual xmlrpc_value* execute(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray);
+protected:
+	virtual unsigned int isActionCanceled() const;
+	virtual void handleParameters(xmlrpc_env* const pEnv, xmlrpc_value * const pParamArray);
+	virtual void doAction();
 
-	void operator()();
 private:
 	static const std::string METHOD_NAME;
 	static const std::string METHOD_SIGNATURE;
 
-	boost::shared_ptr<Debugger::StateMachine> pDebugStateMachine;
-	boost::mutex executionMutex;
-	boost::shared_ptr<boost::thread> pExecutionThread;
+
+	boost::shared_ptr<Debugger::StateMachine> pStateMachine;
 	std::string connectParameters;
 };
 
