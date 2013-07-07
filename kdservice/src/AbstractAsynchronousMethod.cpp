@@ -21,7 +21,7 @@ AbstractAsynchronousMethod::AbstractAsynchronousMethod(const std::string& method
 }
 
 AbstractAsynchronousMethod::~AbstractAsynchronousMethod() {
-	Service::LOGGER << log4cpp::Priority::WARN << "AbstractAsynchronousMethod::~AbstractAsynchronousMethod: ";
+	BOOST_LOG_TRIVIAL(warning) << "AbstractAsynchronousMethod::~AbstractAsynchronousMethod: ";
 	if (pExecutionThread.get()) {
 		pExecutionThread->join();
 	}
@@ -35,7 +35,7 @@ xmlrpc_value* AbstractAsynchronousMethod::execute(xmlrpc_env* const pEnv, xmlrpc
 		}
 
 		if (pExecutionThread.get()) {
-			Service::LOGGER << log4cpp::Priority::WARN << "AbstractAsynchronousMethod::execute: thread is initialized. ";
+			BOOST_LOG_TRIVIAL(warning) << "AbstractAsynchronousMethod::execute: thread is initialized. ";
 		}
 
 		boost::interprocess::scoped_lock<boost::mutex> lock(executionMutex);
@@ -45,16 +45,16 @@ xmlrpc_value* AbstractAsynchronousMethod::execute(xmlrpc_env* const pEnv, xmlrpc
 		boost::shared_ptr<boost::thread> pThread(new boost::thread(boost::bind(&IRunnable::operator(), this)));
 		pExecutionThread = pThread;
 
-		Service::LOGGER << log4cpp::Priority::DEBUG << "AbstractAsynchronousMethod::execute: scheduled successfully";
+		BOOST_LOG_TRIVIAL(debug) << "AbstractAsynchronousMethod::execute: scheduled successfully";
 		return xmlrpc_build_value(pEnv, "i", 0);
 
 	}
 	catch (Debugger::DebugClientException &e) {
-		Service::LOGGER << log4cpp::Priority::ERROR << "AbstractAsynchronousMethod::execute: connect exception: " << e.getMessage();
+		BOOST_LOG_TRIVIAL(error) << "AbstractAsynchronousMethod::execute: connect exception: " << e.getMessage();
 		return xmlrpc_build_value(pEnv, "i", (e.getErrorCode() < 0) ? e.getErrorCode() : -e.getErrorCode());
 	}
 	catch (...) {
-		Service::LOGGER << log4cpp::Priority::ERROR << "AbstractAsynchronousMethod::execute: unknown exception";
+		BOOST_LOG_TRIVIAL(error) << "AbstractAsynchronousMethod::execute: unknown exception";
 		return xmlrpc_build_value(pEnv, "i", Debugger::INTERNAL_ERROR);
 	}
 
@@ -67,7 +67,7 @@ void AbstractAsynchronousMethod::operator()() {
 		doAction();
 	}
 	catch(...) {
-		Service::LOGGER << log4cpp::Priority::ERROR << "AbstractAsynchronousMethod::operator(): unknown exception in thread method";
+		BOOST_LOG_TRIVIAL(error) << "AbstractAsynchronousMethod::operator(): unknown exception in thread method";
 	}
 }
 

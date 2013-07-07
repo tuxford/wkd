@@ -21,10 +21,10 @@ void CommandHandler::handle(const std::vector<std::wstring> &parameters) {
 		isInstallSuccess = Install::install();
 
 		if (isInstallSuccess) {
-			Service::LOGGER << log4cpp::Priority::INFO << "Service has been successfully installed ";
+			BOOST_LOG_TRIVIAL(info) << "Service has been successfully installed ";
 		}
 		else {
-			Service::LOGGER << log4cpp::Priority::FATAL << "Service hasn't been installed ";
+			BOOST_LOG_TRIVIAL(fatal) << "Service hasn't been installed ";
 		}
 	}
 	else {

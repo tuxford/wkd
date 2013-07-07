@@ -16,11 +16,11 @@ class KdDebugInputCallbacks: public IDebugInputCallbacks {
 public:
 	virtual ~KdDebugInputCallbacks();
 
-	virtual ULONG AddRef();
-	virtual ULONG Release();
-	virtual HRESULT QueryInterface(const REFIID interfaceId, void** pInterface);
-	virtual HRESULT StartInput(ULONG bufferSize);
-	virtual HRESULT EndInput();
+	virtual ULONG __stdcall AddRef();
+	virtual ULONG __stdcall Release();
+	virtual HRESULT __stdcall QueryInterface(const REFIID interfaceId, void** pInterface);
+	virtual HRESULT __stdcall StartInput(ULONG bufferSize);
+	virtual HRESULT __stdcall EndInput();
 };
 
 } /* namespace Debugger */

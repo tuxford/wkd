@@ -39,7 +39,7 @@ void RunApplication::start() {
 
 void RunApplication::stop() {
 	try {
-		Service::LOGGER << log4cpp::Priority::INFO << "Run::startAsApp: <HINT> enter any text to exit";
+		BOOST_LOG_TRIVIAL(info) << "Run::startAsApp: <HINT> enter any text to exit";
 		std::string exitVar;
 		std::cin >> exitVar;
 		pDebugServer->stop();

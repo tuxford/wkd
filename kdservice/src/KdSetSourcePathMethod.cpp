@@ -35,19 +35,19 @@ xmlrpc_value* KdSetSourcePathMethod::execute(xmlrpc_env* const pEnv, xmlrpc_valu
 	if (currentState.stateId == Debugger::States::AttachedKernelState::THIS_STATE_ID) {
 		try {
 			pStateMachine->getDebugClient()->setSourcePath(sourcePath);
-			Service::LOGGER << log4cpp::Priority::DEBUG << "KdSetSourcePathMethod::execute: success";
+			BOOST_LOG_TRIVIAL(debug) << "KdSetSourcePathMethod::execute: success";
 			return xmlrpc_build_value(pEnv, "i", SUCCESS);
 		}
 		catch(Debugger::DebugClientException &e) {
-			Service::LOGGER << log4cpp::Priority::DEBUG << "KdSetSourcePathMethod::execute: fail.";
+			BOOST_LOG_TRIVIAL(debug) << "KdSetSourcePathMethod::execute: fail.";
 			return xmlrpc_build_value(pEnv, "i", CLIENT_FAILED);
 		}
 		catch(...) {
-			Service::LOGGER << log4cpp::Priority::DEBUG << "KdSetSourcePathMethod::execute: fail. Unknown exception.";
+			BOOST_LOG_TRIVIAL(debug) << "KdSetSourcePathMethod::execute: fail. Unknown exception.";
 			return xmlrpc_build_value(pEnv, "i", UNKNOWN_ERROR);
 		}
 	}
-	Service::LOGGER << log4cpp::Priority::DEBUG << "KdSetSourcePathMethod::execute: fail. Invalid state.";
+	BOOST_LOG_TRIVIAL(debug) << "KdSetSourcePathMethod::execute: fail. Invalid state.";
 	return xmlrpc_build_value(pEnv, "i", INVALID_STATE);
 }
 

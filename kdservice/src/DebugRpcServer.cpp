@@ -78,16 +78,16 @@ void DebugRpcServer::operator()() {
 		xmlrpc_env env;
 
 		xmlrpc_env_init(&env);
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): environment is initialized ";
+		BOOST_LOG_TRIVIAL(debug) << "DebugRpcServer::operator(): environment is initialized ";
 
 		registryP = xmlrpc_registry_new(&env);
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): registry is initialized ";
+		BOOST_LOG_TRIVIAL(debug) << "DebugRpcServer::operator(): registry is initialized ";
 
 		for (unsigned int i = 0; i < methodRegistry.getAllMethods().size(); ++i) {
 			xmlrpc_method_info3 methodInfo = methodRegistry.getAllMethods()[i]->getMethodInfo();
 			xmlrpc_registry_add_method3(&env, registryP, &methodInfo);
 		}
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): methods are initialized ";
+		BOOST_LOG_TRIVIAL(debug) << "DebugRpcServer::operator(): methods are initialized ";
 
 		serverparm.portNum = 21605;
 		serverparm.useSSL = 0;
@@ -95,25 +95,25 @@ void DebugRpcServer::operator()() {
 		serverparm.logFile = "e:\\rpc.log";
 		serverparm.authfn=&handleAuthorization;
 		serverparm.registryP = registryP;
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): staring server";
+		BOOST_LOG_TRIVIAL(debug) << "DebugRpcServer::operator(): staring server";
 		xmlrpc_server_httpsys(&env, &serverparm, XMLRPC_HSSIZE(authfn));
-		Service::LOGGER << log4cpp::Priority::INFO << "DebugRpcServer::operator(): exception";
+		BOOST_LOG_TRIVIAL(info) << "DebugRpcServer::operator(): exception";
 #else
 		xmlrpc_env env;
 
 		xmlrpc_env_init(&env);
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): environment is initialized ";
+		BOOST_LOG_TRIVIAL(debug) << "DebugRpcServer::operator(): environment is initialized ";
 
 		xmlrpc_registry * registryP;
 		registryP = xmlrpc_registry_new(&env);
 
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): registry is initialized ";
+		BOOST_LOG_TRIVIAL(debug) << "DebugRpcServer::operator(): registry is initialized ";
 
 		for (unsigned int i = 0; i < methodRegistry.getAllMethods().size(); ++i) {
 			xmlrpc_method_info3 methodInfo = methodRegistry.getAllMethods()[i]->getMethodInfo();
 			xmlrpc_registry_add_method3(&env, registryP, &methodInfo);
 		}
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugRpcServer::operator(): methods are initialized ";
+		BOOST_LOG_TRIVIAL(debug) << "DebugRpcServer::operator(): methods are initialized ";
 
 		xmlrpc_server_abyss_parms serverparm;
 		memset(&serverparm, 0, sizeof(serverparm));
@@ -121,11 +121,12 @@ void DebugRpcServer::operator()() {
 		serverparm.enable_shutdown = true;
 		serverparm.registryP = registryP;
 		xmlrpc_server_abyss(&env, &serverparm, XMLRPC_APSIZE(registryP));
+#endif
 	}
 	catch(...) {
-		Service::LOGGER << log4cpp::Priority::INFO << "DebugRpcServer::operator(): exception";
+		BOOST_LOG_TRIVIAL(info) << "DebugRpcServer::operator(): exception";
 	}
-#endif
+
 }
 
 /*

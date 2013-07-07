@@ -23,13 +23,13 @@ bool Install::install() {
 	const int max_path_size = 1024;
 	char path[max_path_size];
 	if (!GetModuleFileNameA(NULL, path, max_path_size)) {
-		Service::LOGGER << log4cpp::Priority::CRIT << "Installation failed. Can't obtain service. Error: " << GetLastError();
+		BOOST_LOG_TRIVIAL(error) << "Installation failed. Can't obtain service. Error: " << GetLastError();
 		return false;
 	}
 
 	SC_HANDLE schScManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if (schScManager == NULL) {
-		Service::LOGGER << log4cpp::Priority::CRIT << "Installation failed. Can't open SCManager. Error: " << GetLastError();
+		BOOST_LOG_TRIVIAL(error) << "Installation failed. Can't open SCManager. Error: " << GetLastError();
 		return false;
 	}
 
@@ -37,7 +37,7 @@ bool Install::install() {
 			NULL, NULL, NULL, NULL, NULL);
 
 	if (schService == NULL) {
-		Service::LOGGER << log4cpp::Priority::CRIT << "Can't install service. Error " << GetLastError();
+		BOOST_LOG_TRIVIAL(error) << "Can't install service. Error " << GetLastError();
 		CloseServiceHandle(schService);
 		return false;
 

@@ -17,7 +17,7 @@ const StateId BreakpointHitState::STATE_ID = "breakpointHit";
 
 BreakpointHitState::BreakpointHitState(BreakpointHitState::my_context cxt) : my_base(cxt)
 {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "BreakpointHitState::BreakpointHitState";
+	BOOST_LOG_TRIVIAL(debug) << "BreakpointHitState::BreakpointHitState";
 	updateContext();
 }
 
@@ -26,7 +26,7 @@ BreakpointHitState::~BreakpointHitState() {
 }
 /*
 boost::statechart::result BreakpointHitState::react(const Events::GoEvent& event) {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "BreakpointHitState::react: debugger transit in the initial state from " << context<StateMachine>().getTargetStateInfo().stateId;
+	BOOST_LOG_TRIVIAL(debug) << "BreakpointHitState::react: debugger transit in the initial state from " << context<StateMachine>().getTargetStateInfo().stateId;
 
 	updateContext();
 

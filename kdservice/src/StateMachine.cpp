@@ -15,7 +15,7 @@ namespace Debugger {
 
 StateMachine::StateMachine(boost::shared_ptr<Debugger::IClient> pClient) :
 		pDebugClient(pClient) {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "StateMachine::StateMachine";
+	BOOST_LOG_TRIVIAL(debug) << "StateMachine::StateMachine";
 }
 
 States::TargetStateInfo StateMachine::getTargetStateInfo() const {
@@ -23,13 +23,13 @@ States::TargetStateInfo StateMachine::getTargetStateInfo() const {
 }
 
 void StateMachine::updateTargetStateInfo(const States::TargetStateInfo& targetStateInfo) {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "StateMachine::updateTargetStateInfo: enter";
+	BOOST_LOG_TRIVIAL(debug) << "StateMachine::updateTargetStateInfo: enter";
 	try {
 		this->targetStateInfo = targetStateInfo;
 		debugEventSender.notify(Notifier::Events::ChangeStateEvent(targetStateInfo));
 	}
 	catch(...) {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "StateMachine::updateTargetStateInfo: can't send event.";
+		BOOST_LOG_TRIVIAL(debug) << "StateMachine::updateTargetStateInfo: can't send event.";
 	}
 }
 

@@ -99,12 +99,12 @@ void KdClient::setSourcePath(const std::string& sourcePath) {
 	if (pDebugSymbols) {
 		HRESULT setSourcePathStatus = pDebugSymbols->SetSourcePath(sourcePath.c_str());
 		if (setSourcePathStatus != S_OK) {
-			Service::LOGGER << log4cpp::Priority::ERROR << "Can't set source path. Error: 0x" << std::hex << setSourcePathStatus;
+			BOOST_LOG_TRIVIAL(error) << "Can't set source path. Error: 0x" << std::hex << setSourcePathStatus;
 			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Cann't set source path.");
 		}
 	}
 	else {
-		Service::LOGGER << log4cpp::Priority::WARN << "Attempt to set source path until IDebugSymbols object initialized. Action has no effect.";
+		BOOST_LOG_TRIVIAL(warning) << "Attempt to set source path until IDebugSymbols object initialized. Action has no effect.";
 	}
 }
 
@@ -112,12 +112,12 @@ void KdClient::setSymbolFilePath(const std::string& sourcePath) {
 	if (pDebugSymbols) {
 		HRESULT setSymbolPathStatus = pDebugSymbols->SetSymbolPath(sourcePath.c_str());
 		if (setSymbolPathStatus != S_OK) {
-			Service::LOGGER << log4cpp::Priority::ERROR << "Can't set symbol path. Error: 0x" << std::hex << setSymbolPathStatus;
+			BOOST_LOG_TRIVIAL(error) << "Can't set symbol path. Error: 0x" << std::hex << setSymbolPathStatus;
 			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Cann't set symbol path.");
 		}
 	}
 	else {
-		Service::LOGGER << log4cpp::Priority::WARN << "Attempt to set symbol path until IDebugSymbols object initialized. Action has no effect.";
+		BOOST_LOG_TRIVIAL(warning) << "Attempt to set symbol path until IDebugSymbols object initialized. Action has no effect.";
 	}
 }
 
@@ -126,12 +126,12 @@ void KdClient::setDriverReplacemnetMap(const std::string& oldDriver, const std::
 		const std::string cmd = ".kdfiles -m " + oldDriver + " " + newDriver;
 		HRESULT setDriverReplacemnetMapStatus = pDebugControl->Execute(DEBUG_OUTCTL_THIS_CLIENT, cmd.c_str(), DEBUG_EXECUTE_ECHO);
 		if (setDriverReplacemnetMapStatus != S_OK) {
-			Service::LOGGER << log4cpp::Priority::WARN << "Can't set driver replacement map. Error: 0x" << std::hex << setDriverReplacemnetMapStatus;
+			BOOST_LOG_TRIVIAL(warning) << "Can't set driver replacement map. Error: 0x" << std::hex << setDriverReplacemnetMapStatus;
 			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Cann't set driver replacement map.");
 		}
 	}
 	else {
-		Service::LOGGER << log4cpp::Priority::WARN << "Attempt to set driver replacement map until IDebugControl object initialized. Action has no effect.";
+		BOOST_LOG_TRIVIAL(warning) << "Attempt to set driver replacement map until IDebugControl object initialized. Action has no effect.";
 	}
 }
 
@@ -141,7 +141,7 @@ void KdClient::run() {
 
 void KdClient::operator ()() {
 	try {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::operator(): Thread started";
+		BOOST_LOG_TRIVIAL(debug) << "KdClient::operator(): Thread started";
 		startMutex.lock();
 
 		pTargetStateMachine->process_event(Events::RanEvent());
@@ -153,7 +153,7 @@ void KdClient::operator ()() {
 		waitForTargetEvent();
 	}
 	catch(...) {
-		Service::LOGGER << log4cpp::Priority::ERROR << "KdClient::operator(): exception in the thread";
+		BOOST_LOG_TRIVIAL(error) << "KdClient::operator(): exception in the thread";
 	}
 }
 
@@ -170,7 +170,7 @@ void KdClient::createDebugClient() {
 	HRESULT debugCreateStatus = ::DebugCreate(__uuidof(IDebugClient), (void**)&pDebugClient);
 
 	if (debugCreateStatus != S_OK ) {
-		Service::LOGGER << log4cpp::Priority::CRIT << "Cann't initialize debug client. Creation of DebugClient failed. Error: 0x" << std::hex << debugCreateStatus;
+		BOOST_LOG_TRIVIAL(error) << "Cann't initialize debug client. Creation of DebugClient failed. Error: 0x" << std::hex << debugCreateStatus;
 		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Cann't initialize debug client. Creation of DebugClient failed.");
 	}
 }
@@ -184,7 +184,7 @@ void KdClient::createDebugControl() {
 	HRESULT queryDebugControlInterfaceStatus = pDebugClient->QueryInterface(__uuidof(IDebugControl), (void**)&pDebugControl);
 
 	if (queryDebugControlInterfaceStatus != S_OK ) {
-		Service::LOGGER << log4cpp::Priority::CRIT << "Debug control dosn't support. Error: 0x" << std::hex << queryDebugControlInterfaceStatus;
+		BOOST_LOG_TRIVIAL(error) << "Debug control dosn't support. Error: 0x" << std::hex << queryDebugControlInterfaceStatus;
 		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Debug control dosn't support");
 	}
 }
@@ -197,13 +197,13 @@ void KdClient::createDebugSymbols() {
 	HRESULT queryDebugSymbolsIntefaceStatus = pDebugClient->QueryInterface(__uuidof(IDebugSymbols), (void**)&pDebugSymbols);
 
 	if (queryDebugSymbolsIntefaceStatus != S_OK) {
-		Service::LOGGER << log4cpp::Priority::CRIT << "Debug symbols dosn't support. Error: 0x" << std::hex << queryDebugSymbolsIntefaceStatus;
+		BOOST_LOG_TRIVIAL(error) << "Debug symbols dosn't support. Error: 0x" << std::hex << queryDebugSymbolsIntefaceStatus;
 		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Debug control dosn't support");
 	}
 }
 
 void KdClient::attachKernelTarget(const std::string& parameters) {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::attachKernel: Parameters: " << parameters;
+	BOOST_LOG_TRIVIAL(debug) << "KdClient::attachKernel: Parameters: " << parameters;
 
 	if (isKernelAttached == true) {
 		throw DebugClientException(HandleResult::ALREADY_ATTACHED_KERNEL, "Kernel already attached");
@@ -211,8 +211,8 @@ void KdClient::attachKernelTarget(const std::string& parameters) {
 
 	HRESULT attachKernelResult = pDebugClient->AttachKernel(DEBUG_ATTACH_KERNEL_CONNECTION, parameters.c_str());
 	if (attachKernelResult != S_OK ) {
-		Service::LOGGER << log4cpp::Priority::ERROR << "KdClient::attachKernel: attach to kernel failed. Parameters: " << parameters;
-		Service::LOGGER << log4cpp::Priority::ERROR << "Error: 0x" << std::hex << attachKernelResult;
+		BOOST_LOG_TRIVIAL(error) << "KdClient::attachKernel: attach to kernel failed. Parameters: " << parameters;
+		BOOST_LOG_TRIVIAL(error) << "Error: 0x" << std::hex << attachKernelResult;
 		throw DebugClientException(HandleResult::ATTACH_KERNEL_ERROR, "Cann't attach to kernel.");
 	}
 
@@ -224,26 +224,26 @@ void KdClient::setEventHandlers() {
 	if (pDebugClient != 0) {
 		HRESULT setEventCallbacksResult = pDebugClient->SetEventCallbacks(&debugEventCallbacks);
 		if (setEventCallbacksResult != S_OK ) {
-			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set EventHandlersCallbacks. Error: 0x" << std::hex << setEventCallbacksResult;
+			BOOST_LOG_TRIVIAL(error) << "KdClient::setEventHandlers: Can't set EventHandlersCallbacks. Error: 0x" << std::hex << setEventCallbacksResult;
 			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
 		}
 
 		/*		HRESULT setInputCallbacksResult = pDebugClient->SetInputCallbacks(&debugInputCallbacks);
 		 if (setInputCallbacksResult != S_OK) {
-		 Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set InputHandlersCallbacks. Error: 0x" << std::hex << setInputCallbacksResult;
+		 BOOST_LOG_TRIVIAL(error) << "KdClient::setEventHandlers: Can't set InputHandlersCallbacks. Error: 0x" << std::hex << setInputCallbacksResult;
 		 throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
 		 }*/
 
 		HRESULT setOutputCallbacksResult = pDebugClient->SetOutputCallbacks(pDebugOutputCallbacks.get());
 		if (setOutputCallbacksResult != S_OK ) {
-			Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: Can't set OutputHandlersCallbacks. Error: 0x" << std::hex << setOutputCallbacksResult;
+			BOOST_LOG_TRIVIAL(error) << "KdClient::setEventHandlers: Can't set OutputHandlersCallbacks. Error: 0x" << std::hex << setOutputCallbacksResult;
 			throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Can't set EventHandlersCallbacks");
 		}
 
-		Service::LOGGER << log4cpp::Priority::DEBUG << "KdClient::setEventHandlers: handlers are installed successfully";
+		BOOST_LOG_TRIVIAL(debug) << "KdClient::setEventHandlers: handlers are installed successfully";
 	}
 	else {
-		Service::LOGGER << log4cpp::Priority::CRIT << "KdClient::setEventHandlers: debug client is 0";
+		BOOST_LOG_TRIVIAL(error) << "KdClient::setEventHandlers: debug client is 0";
 		throw DebugClientException(HandleResult::UNEXPECTED_ERROR, "Internal error. Debug client not initialized");
 	}
 }
@@ -251,7 +251,7 @@ void KdClient::setEventHandlers() {
 void KdClient::waitForTargetEvent() {
 	HRESULT setIinitialBreakResult = pDebugControl->SetEngineOptions(DEBUG_ENGOPT_INITIAL_BREAK);
 	if (setIinitialBreakResult != S_OK ) {
-		Service::LOGGER << log4cpp::Priority::WARN << "Can't set initial break";
+		BOOST_LOG_TRIVIAL(warning) << "Can't set initial break";
 		return;
 	}
 

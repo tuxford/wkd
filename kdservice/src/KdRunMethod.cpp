@@ -32,19 +32,19 @@ xmlrpc_value* KdRunMethod::execute(xmlrpc_env* const pEnv, xmlrpc_value * const 
 	if (currentState.stateId == Debugger::States::AttachedKernelState::THIS_STATE_ID) {
 		try {
 			pStateMachine->getDebugClient()->run();
-			Service::LOGGER << log4cpp::Priority::DEBUG << "KdRunMethod::execute: success";
+			BOOST_LOG_TRIVIAL(debug) << "KdRunMethod::execute: success";
 			return xmlrpc_build_value(pEnv, "i", SUCCESS);
 		}
 		catch(Debugger::DebugClientException &e) {
-			Service::LOGGER << log4cpp::Priority::DEBUG << "KdRunMethod::execute: fail.";
+			BOOST_LOG_TRIVIAL(debug) << "KdRunMethod::execute: fail.";
 			return xmlrpc_build_value(pEnv, "i", CLIENT_FAILED);
 		}
 		catch(...) {
-			Service::LOGGER << log4cpp::Priority::DEBUG << "KdRunMethod::execute: fail. Unknown exception.";
+			BOOST_LOG_TRIVIAL(debug) << "KdRunMethod::execute: fail. Unknown exception.";
 			return xmlrpc_build_value(pEnv, "i", UNKNOWN_ERROR);
 		}
 	}
-	Service::LOGGER << log4cpp::Priority::DEBUG << "KdRunMethod::execute: fail. Invalid state.";
+	BOOST_LOG_TRIVIAL(debug) << "KdRunMethod::execute: fail. Invalid state.";
 	return xmlrpc_build_value(pEnv, "i", INVALID_STATE);
 }
 

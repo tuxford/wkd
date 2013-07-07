@@ -18,7 +18,7 @@ const StateId AttachedKernelState::THIS_STATE_ID = "attachedKernel";
 
 AttachedKernelState::AttachedKernelState(my_context cxt) :
 	my_base(cxt) {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "AttachedKernelState::AttachedKernelState";
+	BOOST_LOG_TRIVIAL(debug) << "AttachedKernelState::AttachedKernelState";
 	updateContext();
 }
 
@@ -28,16 +28,16 @@ AttachedKernelState::~AttachedKernelState() {
 boost::statechart::result AttachedKernelState::react(const Events::DisconnectEvent& disconnectEvent) {
 	try {
 		context<StateMachine>().getDebugClient()->disconnect();
-		Service::LOGGER << log4cpp::Priority::DEBUG << "AttachedKernelState::react(Events::DisconnectEvent): disconnect from target";
+		BOOST_LOG_TRIVIAL(debug) << "AttachedKernelState::react(Events::DisconnectEvent): disconnect from target";
 	}
 	catch(DebugClientException &e) {
 //TODO: implement generic error handling
-		Service::LOGGER << log4cpp::Priority::DEBUG << "AttachedKernelState::react(Events::DisconnectEvent): disconnect failed with exception: " << e.getMessage();
+		BOOST_LOG_TRIVIAL(debug) << "AttachedKernelState::react(Events::DisconnectEvent): disconnect failed with exception: " << e.getMessage();
 		return discard_event();
 	}
 	catch(...) {
 //TODO: implement generic error handling
-		Service::LOGGER << log4cpp::Priority::DEBUG << "AttachedKernelState::react(Events::DisconnectEvent): disconnect failed with unknown exception" ;
+		BOOST_LOG_TRIVIAL(debug) << "AttachedKernelState::react(Events::DisconnectEvent): disconnect failed with unknown exception" ;
 		return discard_event();
 	}
 

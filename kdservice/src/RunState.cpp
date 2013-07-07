@@ -17,7 +17,7 @@ const StateId RunState::STATE_ID = "run";
 
 RunState::RunState(RunState::my_context cxt) : my_base(cxt)
 {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "RunState::RunState";
+	BOOST_LOG_TRIVIAL(debug) << "RunState::RunState";
 	updateContext();
 }
 
@@ -26,7 +26,7 @@ RunState::~RunState() {
 }
 /*
 boost::statechart::result RunState::react(const Events::GoEvent& event) {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "RunState::react: debugger transit in the initial state from " << context<StateMachine>().getTargetStateInfo().stateId;
+	BOOST_LOG_TRIVIAL(debug) << "RunState::react: debugger transit in the initial state from " << context<StateMachine>().getTargetStateInfo().stateId;
 
 	updateContext();
 

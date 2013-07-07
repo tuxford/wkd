@@ -21,10 +21,10 @@ public:
 
 	virtual ~KdDebugOutputCallbacks();
 
-	virtual ULONG AddRef();
-	virtual ULONG Release();
-	virtual HRESULT QueryInterface(const REFIID interfaceId, void** pInterface);
-	virtual HRESULT Output(ULONG mask, PCSTR text);
+	virtual ULONG __stdcall AddRef();
+	virtual ULONG __stdcall Release();
+	virtual HRESULT __stdcall QueryInterface(const REFIID interfaceId, void** pInterface);
+	virtual HRESULT __stdcall Output(ULONG mask, PCSTR text);
 
 public:
 	boost::shared_ptr<Notifier::IOutputNotifier> pOutputNotifier;

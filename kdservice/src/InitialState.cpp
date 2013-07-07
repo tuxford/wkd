@@ -18,7 +18,7 @@ const StateId InitialState::STATE_ID = "initial";
 
 InitialState::InitialState(InitialState::my_context cxt) : my_base(cxt)
 {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "InitialState::InitialState";
+	BOOST_LOG_TRIVIAL(debug) << "InitialState::InitialState";
 	updateContext();
 }
 
@@ -27,7 +27,7 @@ InitialState::~InitialState() {
 }
 
 boost::statechart::result InitialState::react(const Events::EntryEvent& event) {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "InitialState::react: debugger transit in the initial state from " << context<StateMachine>().getTargetStateInfo().stateId;
+	BOOST_LOG_TRIVIAL(debug) << "InitialState::react: debugger transit in the initial state from " << context<StateMachine>().getTargetStateInfo().stateId;
 
 	updateContext();
 

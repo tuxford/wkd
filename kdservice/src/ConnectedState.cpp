@@ -19,7 +19,7 @@ const StateId ConnectedState::THIS_STATE_ID = "connected";
 
 ConnectedState::ConnectedState(my_context cxt) :
 		my_base(cxt){
-	Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::ConnectedState";
+	BOOST_LOG_TRIVIAL(debug) << "ConnectedState::ConnectedState";
 	updateContext();
 }
 
@@ -27,7 +27,7 @@ ConnectedState::~ConnectedState() {
 }
 
 boost::statechart::result ConnectedState::react(const Events::AttachKernelEvent& attachKernelEvent) {
-	Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react: entry";
+	BOOST_LOG_TRIVIAL(debug) << "ConnectedState::react: entry";
 	try {
 		context<StateMachine>().getDebugClient()->attachKenel(attachKernelEvent.getAttachKernelParams());
 	}
@@ -48,16 +48,16 @@ boost::statechart::result ConnectedState::react(const Events::AttachKernelEvent&
 boost::statechart::result ConnectedState::react(const Events::DisconnectEvent& disconnectEvent) {
 	try {
 		context<StateMachine>().getDebugClient()->disconnect();
-		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react(Events::DisconnectEvent): disconnect from target";
+		BOOST_LOG_TRIVIAL(debug) << "ConnectedState::react(Events::DisconnectEvent): disconnect from target";
 	}
 	catch(DebugClientException &e) {
 //TODO: implement generic error handling
-		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react(Events::DisconnectEvent): disconnect failed with exception: " << e.getMessage();
+		BOOST_LOG_TRIVIAL(debug) << "ConnectedState::react(Events::DisconnectEvent): disconnect failed with exception: " << e.getMessage();
 		return discard_event();
 	}
 	catch(...) {
 //TODO: implement generic error handling
-		Service::LOGGER << log4cpp::Priority::DEBUG << "ConnectedState::react(Events::DisconnectEvent): disconnect failed with unknown exception" ;
+		BOOST_LOG_TRIVIAL(debug) << "ConnectedState::react(Events::DisconnectEvent): disconnect failed with unknown exception" ;
 		return discard_event();
 	}
 

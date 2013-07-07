@@ -36,17 +36,17 @@ DebugEventRpcSender::~DebugEventRpcSender() {
 void DebugEventRpcSender::notify(const Events::ChangeStateEvent& event) {
 
 	try {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugEventRpcSender::notifyEvent: (state changed) " << event.getTargetStateInfo().stateId << " message queued";
+		BOOST_LOG_TRIVIAL(debug) << "DebugEventRpcSender::notifyEvent: (state changed) " << event.getTargetStateInfo().stateId << " message queued";
 		messageQueue.push(EventSerializer::servialize(event));
 	}
 	catch (std::exception &e) {
 //		FIXME: exception
-		Service::LOGGER << log4cpp::Priority::WARN << "DebugEventRpcSender::notifyEvent exception: event id> " << event.getTargetStateInfo().stateId;
-		Service::LOGGER << log4cpp::Priority::WARN << "DebugEventRpcSender::notifyEvent exception: " << e.what();
+		BOOST_LOG_TRIVIAL(warning) << "DebugEventRpcSender::notifyEvent exception: event id> " << event.getTargetStateInfo().stateId;
+		BOOST_LOG_TRIVIAL(warning) << "DebugEventRpcSender::notifyEvent exception: " << e.what();
 	}
 	catch (...) {
 //		FIXME: exception
-		Service::LOGGER << log4cpp::Priority::WARN << "DebugEventRpcSender::notifyEvent unknown exception";
+		BOOST_LOG_TRIVIAL(warning) << "DebugEventRpcSender::notifyEvent unknown exception";
 	}
 }
 
@@ -54,16 +54,16 @@ void DebugEventRpcSender::notify(const Events::OutputEvent& event) {
 	xmlrpc_c::value result;
 
 	try {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugEventRpcSender::notifyEvent (debug message): " << event.getMessage();
+		BOOST_LOG_TRIVIAL(debug) << "DebugEventRpcSender::notifyEvent (debug message): " << event.getMessage();
 		pXmlrpcClient->call(EVENT_LISTENER_URL, OUTPUT_EVENT_METHOD, "s", &result, event.getMessage().c_str());
 	}
 	catch (std::exception &e) {
 //		FIXME: exception
-		Service::LOGGER << log4cpp::Priority::WARN << "DebugEventRpcSender::notifyEvent exception: " << e.what();
+		BOOST_LOG_TRIVIAL(warning) << "DebugEventRpcSender::notifyEvent exception: " << e.what();
 	}
 	catch (...) {
 //		FIXME: exception
-		Service::LOGGER << log4cpp::Priority::WARN << "DebugEventRpcSender::notifyEvent unknown exception";
+		BOOST_LOG_TRIVIAL(warning) << "DebugEventRpcSender::notifyEvent unknown exception";
 	}
 }
 
@@ -71,7 +71,7 @@ void DebugEventRpcSender::operator()() {
 //TODO: implement thread join
 //TODO: implement message queue for all events (like map<eventType, messageQueue>)
 	try {
-		Service::LOGGER << log4cpp::Priority::DEBUG << "DebugEventRpcSender::operator (): entry";
+		BOOST_LOG_TRIVIAL(debug) << "DebugEventRpcSender::operator (): entry";
 		while(true) {
 			bool unsuccess = false;
 			unsigned int attempsSend = 0;
@@ -84,12 +84,12 @@ void DebugEventRpcSender::operator()() {
 					continue;
 				}
 				catch(std::exception& e) {
-					Service::LOGGER << log4cpp::Priority::WARN << "DebugEventRpcSender::operator(): " << e.what();
+					BOOST_LOG_TRIVIAL(warning) << "DebugEventRpcSender::operator(): " << e.what();
 					unsuccess = true;
 					attempsSend++;
 				}
 				catch(...) {
-					Service::LOGGER << log4cpp::Priority::WARN << "DebugEventRpcSender::operator() unknown exception";
+					BOOST_LOG_TRIVIAL(warning) << "DebugEventRpcSender::operator() unknown exception";
 					unsuccess = true;
 					attempsSend++;
 				}
@@ -111,7 +111,7 @@ void DebugEventRpcSender::operator()() {
 		}
 	}
 	catch(...) {
-		Service::LOGGER << log4cpp::Priority::CRIT << "DebugEventRpcSender::operator() exception in thread! Exited.";
+		BOOST_LOG_TRIVIAL(error) << "DebugEventRpcSender::operator() exception in thread! Exited.";
 	}
 }
 

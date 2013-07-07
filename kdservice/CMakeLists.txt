@@ -2,6 +2,17 @@ cmake_minimum_required (VERSION 2.6)
 
 project(KDservice)
 
+FIND_PACKAGE(Boost)
+IF (Boost_FOUND)
+    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+    ADD_DEFINITIONS( "-DHAS_BOOST" )
+ENDIF()
+
+FIND_PACKAGE(XMLRPC REQUIRED c++)
+if ( NOT XMLRPC_FOUND )
+    message("xmlrpc not found!")
+endif ( NOT XMLRPC_FOUND )
+
 if(SIM)
     add_definitions(-DSIM)
     add_definitions(-DAPP)
